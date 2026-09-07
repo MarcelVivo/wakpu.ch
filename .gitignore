@@ -11,3 +11,4 @@ playwright-report/
 # Raw camera source clips; only the derived public/video/wakpu-*.mp4 files are used by the site.
 public/video/WAKPUBallPink.mp4
 public/video/WAPKUBallGreen.mp4
+public/video/WakpuKugelnKollision.mp4
