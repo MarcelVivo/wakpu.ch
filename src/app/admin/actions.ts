@@ -7,6 +7,10 @@ import { getServerSupabase } from '@/lib/supabase/server';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { retryFulfillment,simulateShipped,markManualReview,processFulfillmentJobs } from '@/lib/services/fulfillment';
 import { processEmailJobs } from '@/lib/services/email';
+import { getResend,isEmailConfigured } from '@/lib/resend/client';
+import { renderWaitlistLaunchEmail } from '@/lib/resend/templates';
+import { siteUrl } from '@/lib/env';
+import { isLocale } from '@/i18n/locales';
 export async function login(form:FormData) {
   const parsed=z.object({email:z.email(),password:z.string().min(1).max(512)}).safeParse(Object.fromEntries(form));
   if(!parsed.success)redirect('/admin/login?status=error');
@@ -43,6 +47,28 @@ export async function saveProduct(form:FormData){
     const {error}=await getAdminSupabase().rpc('admin_update_product',{p_product_id:p.id,p_variant_id:p.variant_id,p_name:p.name,p_description:p.description,p_short_description:p.short_description,p_active:form.get('active')==='on',p_featured:form.get('featured')==='on',p_sku:p.sku,p_supplier_sku:p.supplier_sku||null,p_price_chf_cents:p.price_chf_cents,p_stock_mode:p.stock_mode});if(error)throw error;success=true;
   }catch{}
   revalidatePath('/');revalidatePath('/admin/products');redirect(`/admin/products?status=${success?'saved':'error'}`);
+}
+export async function notifyWaitlist(){
+  const user=await requireAdmin();
+  let sent=0;let success=false;
+  try{
+    await audit(user.id,'waitlist.notify.requested','waitlist');
+    const db=getAdminSupabase();
+    const {data:rows,error}=await db.from('waitlist_signups').select('id,email,locale').not('confirmed_at','is',null).is('notified_at',null).limit(500);
+    if(error)throw error;
+    if(isEmailConfigured()){
+      for(const row of rows??[]){
+        try{
+          const locale=isLocale(row.locale)?row.locale:'de';
+          const message=renderWaitlistLaunchEmail(`${siteUrl()}/${locale}`,locale);
+          const response=await getResend().emails.send({from:process.env.RESEND_FROM_EMAIL!,to:row.email,...message},{idempotencyKey:`wakpu-waitlist-launch/${row.id}`});
+          if(!response.error){await db.from('waitlist_signups').update({notified_at:new Date().toISOString()}).eq('id',row.id);sent++;}
+        }catch{}
+      }
+    }
+    success=true;
+  }catch{}
+  revalidatePath('/admin/waitlist');redirect(`/admin/waitlist?status=${success?'saved':'error'}&sent=${sent}`);
 }
 export async function saveSettings(form:FormData){
   const user=await requireAdmin();

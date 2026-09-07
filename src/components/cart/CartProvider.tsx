@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Product, ProductVariant, SiteSettings } from "@/types/catalog";
+import type { Locale } from "@/i18n/locales";
 import { isVariantAvailable } from "@/components/product/price";
 
 export interface CartEntry { variantId: string; quantity: number }
@@ -13,6 +14,7 @@ interface CartContextValue {
   subtotal: number;
   isOpen: boolean;
   settings: SiteSettings;
+  locale: Locale;
   addItem: (variantId: string) => void;
   setQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
@@ -26,7 +28,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "wakpu-cart-v1";
 const MAX_QUANTITY = 10;
 
-export function CartProvider({ products, settings, children }: { products: Product[]; settings: SiteSettings; children: React.ReactNode }) {
+export function CartProvider({ products, settings, locale, children }: { products: Product[]; settings: SiteSettings; locale: Locale; children: React.ReactNode }) {
   const [entries, setEntries] = useState<CartEntry[]>([]);
   const [ready, setReady] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -99,7 +101,7 @@ export function CartProvider({ products, settings, children }: { products: Produ
     lines,
     count: lines.reduce((sum, entry) => sum + entry.quantity, 0),
     subtotal: lines.reduce((sum, entry) => sum + entry.variant.price_chf_cents * entry.quantity, 0),
-    isOpen, settings, addItem, setQuantity,
+    isOpen, settings, locale, addItem, setQuantity,
     removeItem: (variantId) => setEntries((current) => current.filter((entry) => entry.variantId !== variantId)),
     openCart: () => setIsOpen(true),
     closeCart: () => setIsOpen(false),

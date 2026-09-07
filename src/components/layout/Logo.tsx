@@ -1,5 +1,6 @@
 import Link from "next/link";
+import type { Locale } from "@/i18n/locales";
 
-export function Logo({ large = false }: { large?: boolean }) {
-  return <Link href="/" aria-label="WAKPU Startseite" className={`wordmark${large ? " wordmark-large" : ""}`}>WAKPU</Link>;
+export function Logo({ locale, large = false }: { locale: Locale; large?: boolean }) {
+  return <Link href={`/${locale}`} aria-label="WAKPU" className={`wordmark${large ? " wordmark-large" : ""}`}>WAKPU</Link>;
 }

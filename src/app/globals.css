@@ -60,6 +60,9 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
 .main-nav a:hover:after { transform: scaleX(1); }
 .header-actions { display: flex; align-items: center; gap: 28px; }
 .shipping-country { display: flex; align-items: center; gap: 7px; font-size: 10px; color: #666a60; }
+.language-switcher { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 650; letter-spacing: .04em; }
+.language-switcher a { color: #9a9d90; }
+.language-switcher a[aria-current="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .swiss-flag { display: inline-block; position: relative; width: 14px; height: 14px; background: #cf5249; border-radius: 2px; }
 .swiss-flag:before, .swiss-flag:after { content: ''; position: absolute; background: white; left: 6px; top: 3px; width: 2px; height: 8px; }
 .swiss-flag:after { transform: rotate(90deg); }
@@ -172,6 +175,13 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
 .launch-copy h3 { font-size: 38px; line-height: 1.1; font-weight: 600; letter-spacing: -.05em; margin-top: 18px; }
 .launch-copy > p { max-width: 380px; color: #656e5b; font-size: 12px; margin-top: 16px; }
 .launch-copy .text-link { margin-top: 20px; }
+.waitlist-form { margin-top: 24px; max-width: 380px; }
+.waitlist-label { display: block; font-size: 11px; font-weight: 650; letter-spacing: .04em; margin-bottom: 8px; }
+.waitlist-row { display: flex; gap: 8px; }
+.waitlist-row input { flex: 1; min-width: 0; height: 53px; padding: 0 16px; border: 1px solid #d1d3c9; border-radius: 7px; background: white; font-size: 13px; color: var(--ink); }
+.waitlist-row input::placeholder { color: #9a9d90; }
+.waitlist-row .button { min-height: 53px; padding-inline: 18px; gap: 8px; white-space: nowrap; }
+.waitlist-notice { margin-top: 24px; max-width: 380px; padding: 14px 16px; background: var(--lime); border-radius: 7px; font-size: 12px; font-weight: 550; }
 .mystery-strip { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 25px; padding: 22px 20px; border: 1px solid var(--line); border-radius: 6px; }
 .mystery-strip .color-dots i { width: 16px; height: 16px; border-width: 2px; margin-left: -4px; }
 .mystery-strip p { font-size: 11px; color: #656e5b; }
@@ -438,6 +448,8 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
   .launch-copy h3 { font-size: 35px; }
   .launch-copy .trend-label { font-size: 7px; }
   .launch-copy > p { font-size: 11px; }
+  .waitlist-row { flex-direction: column; }
+  .waitlist-row .button { justify-content: center; }
   .mystery-strip { padding: 20px 15px; flex-wrap: wrap; gap: 8px; }
   .mystery-strip p { font-size: 10px; }
   .mystery-strip > span { display: none; }

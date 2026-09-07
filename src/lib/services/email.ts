@@ -7,6 +7,7 @@ import { renderOrderEmail, type EmailKind } from "@/lib/resend/templates";
 import { isEmailRetryWindowOpen } from "@/lib/fulfillment/safety";
 import { buildOrderStatusUrl } from "./order-access";
 import { claimJobs, deferJob, failJob, finishJob, type WorkerJob } from "./job-queue";
+import { isLocale } from "@/i18n/locales";
 
 const emailKinds: EmailKind[] = ["order_confirmation", "shipping_confirmation", "tracking_update", "fulfillment_error", "refund_confirmation"];
 const messageSchema = z.object({ from: z.string().min(3), to: z.email(), subject: z.string().min(1), html: z.string().min(1), text: z.string().min(1) });
@@ -20,11 +21,12 @@ async function emailSnapshot(job: WorkerJob): Promise<z.infer<typeof messageSche
   const admin = job.kind === "fulfillment_error";
   const recipient = admin ? process.env.ADMIN_EMAIL : order.email;
   if (!recipient || !z.email().safeParse(recipient).success) return null;
+  const locale = admin ? "de" : (isLocale(order.locale) ? order.locale : "de");
   const contents = renderOrderEmail(job.kind as EmailKind, {
     orderNumber: order.order_number, firstName: admin ? "" : order.first_name ?? "",
     totalCents: order.total_cents, shippingCents: order.shipping_cents,
     statusUrl: admin ? new URL(`/admin/orders/${order.id}`, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").toString() : buildOrderStatusUrl(order),
-    supportEmail: settings.support_email ?? "", shippingText: settings.default_shipping_text ?? "",
+    supportEmail: settings.support_email ?? "", shippingText: settings.default_shipping_text ?? "", locale,
     items: admin ? [] : (order.order_items ?? []).map((item: { product_name: string; quantity: number; total_price_cents: number }) => ({ name: item.product_name, quantity: item.quantity, totalCents: item.total_price_cents })),
     trackingNumber: typeof job.payload.tracking_number === "string" ? job.payload.tracking_number : null,
     trackingUrl: typeof job.payload.tracking_url === "string" ? job.payload.tracking_url : null,

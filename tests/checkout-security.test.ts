@@ -10,13 +10,13 @@ test('Stripe checkout body is invariant to initial versus replayed database item
     {variant_id:'b',product_name:'Triple',quantity:1,unit_price_cents:2490},
     {variant_id:'a',product_name:'Single',quantity:1,unit_price_cents:990},
   ]};
-  const params=checkoutParameters(order,'https://wakpu.ch','Lieferung gemäss bestätigtem Versandhinweis.',1_900_000_000);
-  const replay=checkoutParameters({...order,items:[...order.items].reverse()},'https://wakpu.ch','Lieferung gemäss bestätigtem Versandhinweis.',1_900_000_000);
+  const params=checkoutParameters(order,'https://wakpu.ch','Lieferung gemäss bestätigtem Versandhinweis.',1_900_000_000,'de');
+  const replay=checkoutParameters({...order,items:[...order.items].reverse()},'https://wakpu.ch','Lieferung gemäss bestätigtem Versandhinweis.',1_900_000_000,'de');
   assert.deepEqual(params,replay);
   assert.equal(params.adaptive_pricing?.enabled,false);
   assert.equal(params.currency,'chf');
   assert.equal(params.line_items?.[0].price_data?.unit_amount,990);
-  assert.throws(()=>checkoutParameters(order,'https://wakpu.ch','x'.repeat(1201),1_900_000_000),/SHIPPING_TEXT/);
+  assert.throws(()=>checkoutParameters(order,'https://wakpu.ch','x'.repeat(1201),1_900_000_000,'de'),/SHIPPING_TEXT/);
 });
 
 test('modern Stripe delivery address is used and missing/foreign delivery details cannot finalize',()=>{

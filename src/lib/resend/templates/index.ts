@@ -1,3 +1,6 @@
+import type { Locale } from "@/i18n/locales";
+import { getDictionary } from "@/i18n/get-dictionary";
+
 export type EmailKind = "order_confirmation" | "shipping_confirmation" | "tracking_update" | "fulfillment_error" | "refund_confirmation";
 
 export interface OrderEmailData {
@@ -8,6 +11,7 @@ export interface OrderEmailData {
   statusUrl: string;
   supportEmail: string;
   shippingText: string;
+  locale: Locale;
   items: { name: string; quantity: number; totalCents: number }[];
   trackingNumber?: string | null;
   trackingUrl?: string | null;
@@ -32,33 +36,54 @@ const money = (cents: number): string => `CHF ${(cents / 100).toFixed(2)}`;
 
 /** Values from customers, settings and providers are escaped; URLs allow only HTTP(S). */
 export function renderOrderEmail(kind: EmailKind, data: OrderEmailData): { subject: string; html: string; text: string } {
+  const dict = getDictionary(data.locale).emails.order;
   const subjects: Record<EmailKind, string> = {
-    order_confirmation: "Dein WAKPU ist bestellt 💥",
-    shipping_confirmation: "Dein WAKPU ist unterwegs 📦",
-    tracking_update: "Neuigkeiten zu deiner WAKPU-Lieferung",
-    fulfillment_error: `WAKPU: Bestellung ${data.orderNumber} prüfen`,
-    refund_confirmation: "Deine WAKPU-Rückerstattung",
+    order_confirmation: dict.subjects.order_confirmation,
+    shipping_confirmation: dict.subjects.shipping_confirmation,
+    tracking_update: dict.subjects.tracking_update,
+    fulfillment_error: dict.subjects.fulfillment_error(data.orderNumber),
+    refund_confirmation: dict.subjects.refund_confirmation,
   };
   const descriptions: Record<EmailKind, string> = {
-    order_confirmation: "Danke für deine Bestellung. Deine Zahlung ist eingegangen. Hier findest du deine Bestellübersicht.",
-    shipping_confirmation: "Deine Bestellung wurde versendet. Den aktuellen Stand findest du in deiner Bestellübersicht.",
-    tracking_update: "Die Sendungsinformationen deiner Bestellung wurden aktualisiert. In deiner Bestellübersicht siehst du den aktuellen Stand.",
-    fulfillment_error: "Diese Bestellung benötigt eine manuelle Prüfung. Bitte prüfe Status und Fehlerdetails im geschützten Admin-Bereich, bevor du erneut Fulfillment auslöst.",
-    refund_confirmation: `Für deine Bestellung wurde eine Rückerstattung${data.refundAmountCents ? ` über ${money(data.refundAmountCents)}` : ""} veranlasst. Die Gutschrift erfolgt über das ursprüngliche Zahlungsmittel.`,
+    order_confirmation: dict.descriptions.order_confirmation,
+    shipping_confirmation: dict.descriptions.shipping_confirmation,
+    tracking_update: dict.descriptions.tracking_update,
+    fulfillment_error: dict.descriptions.fulfillment_error,
+    refund_confirmation: dict.descriptions.refund_confirmation(data.refundAmountCents ? dict.descriptions.refund(money(data.refundAmountCents)) : ""),
   };
   const statusUrl = safeHttpUrl(data.statusUrl);
   const trackingUrl = safeHttpUrl(data.trackingUrl);
   const isAdmin = kind === "fulfillment_error";
-  const introduction = isAdmin ? "Hallo WAKPU-Team" : data.firstName ? `Hallo ${data.firstName}` : "Hallo";
-  const mockText = data.mock ? "Testmodus: Dies ist eine simulierte Bestellung. Es wird kein echtes Paket versendet." : "";
+  const introduction = isAdmin ? dict.greetingAdmin : data.firstName ? dict.greeting(data.firstName) : dict.greetingGeneric;
+  const mockText = data.mock ? dict.mockOrder : "";
   const itemText = kind === "order_confirmation"
-    ? data.items.map((item) => `${item.quantity} × ${item.name}: ${money(item.totalCents)}`).join("\n") + `\nVersand: ${money(data.shippingCents)}\nTotal: ${money(data.totalCents)}` : "";
-  const trackingText = data.trackingNumber ? `Sendungsnummer: ${data.trackingNumber}${data.carrier ? ` (${data.carrier})` : ""}` : "";
-  const text = [introduction, descriptions[kind], `Bestellung ${data.orderNumber}`, mockText, itemText,
+    ? data.items.map((item) => `${item.quantity} × ${item.name}: ${money(item.totalCents)}`).join("\n") + `\n${dict.shippingLabel}: ${money(data.shippingCents)}\n${dict.totalLabel}: ${money(data.totalCents)}` : "";
+  const trackingText = data.trackingNumber ? dict.trackingNumber(data.trackingNumber, data.carrier || "") : "";
+  const text = [introduction, descriptions[kind], data.orderNumber, mockText, itemText,
     kind === "order_confirmation" ? data.shippingText : "", trackingText, trackingUrl,
-    statusUrl ? `${isAdmin ? "Admin" : "Bestellung ansehen"}: ${statusUrl}` : "",
-    data.supportEmail ? `Fragen? ${data.supportEmail}` : "", "WAKPU"].filter(Boolean).join("\n\n");
+    statusUrl ? `${isAdmin ? dict.openAdmin : dict.viewOrder}: ${statusUrl}` : "",
+    data.supportEmail ? getDictionary(data.locale).emails.doNotReply(data.supportEmail) : "", "WAKPU"].filter(Boolean).join("\n\n");
   const e = escapeHtml;
-  const html = `<!doctype html><html lang="de-CH"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f7f7f5;color:#171719;font-family:Arial,Helvetica,sans-serif"><main style="max-width:560px;margin:32px auto;background:#fff;padding:32px;border-radius:16px"><div style="font-size:28px;font-weight:900;letter-spacing:-1px">WAKPU</div><p style="margin-top:32px">${e(introduction)}</p><h1 style="font-size:24px;line-height:1.2">${e(subjects[kind])}</h1><p style="line-height:1.6">${e(descriptions[kind])}</p><p><strong>${e(data.orderNumber)}</strong></p>${mockText ? `<p style="padding:16px;background:#f4f0ff;border-radius:8px">${e(mockText)}</p>` : ""}${itemText ? `<div style="border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;padding:16px 0;line-height:1.7">${e(itemText).replace(/\n/g, "<br>")}</div>` : ""}${kind === "order_confirmation" && data.shippingText ? `<p>${e(data.shippingText)}</p>` : ""}${trackingText ? `<p>${e(trackingText)}</p>` : ""}${trackingUrl ? `<p><a href="${e(trackingUrl)}" style="color:#171719">Sendung verfolgen</a></p>` : ""}${statusUrl ? `<p style="margin:28px 0"><a href="${e(statusUrl)}" style="display:inline-block;background:#171719;color:#fff;padding:16px 24px;border-radius:10px;text-decoration:none;font-weight:bold">${isAdmin ? "Admin öffnen" : "Bestellung ansehen"}</a></p>` : ""}${data.supportEmail ? `<p style="font-size:14px;color:#52525b">Fragen? ${e(data.supportEmail)}</p>` : ""}<p style="font-size:12px;color:#71717a">WAKPU · Preise in CHF</p></main></body></html>`;
+  const html = `<!doctype html><html lang="${data.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f7f7f5;color:#171719;font-family:Arial,Helvetica,sans-serif"><main style="max-width:560px;margin:32px auto;background:#fff;padding:32px;border-radius:16px"><div style="font-size:28px;font-weight:900;letter-spacing:-1px">WAKPU</div><p style="margin-top:32px">${e(introduction)}</p><h1 style="font-size:24px;line-height:1.2">${e(subjects[kind])}</h1><p style="line-height:1.6">${e(descriptions[kind])}</p><p><strong>${e(data.orderNumber)}</strong></p>${mockText ? `<p style="padding:16px;background:#f4f0ff;border-radius:8px">${e(mockText)}</p>` : ""}${itemText ? `<div style="border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;padding:16px 0;line-height:1.7">${e(itemText).replace(/\n/g, "<br>")}</div>` : ""}${kind === "order_confirmation" && data.shippingText ? `<p>${e(data.shippingText)}</p>` : ""}${trackingText ? `<p>${e(trackingText)}</p>` : ""}${trackingUrl ? `<p><a href="${e(trackingUrl)}" style="color:#171719">${e(dict.trackShipment)}</a></p>` : ""}${statusUrl ? `<p style="margin:28px 0"><a href="${e(statusUrl)}" style="display:inline-block;background:#171719;color:#fff;padding:16px 24px;border-radius:10px;text-decoration:none;font-weight:bold">${isAdmin ? e(dict.openAdmin) : e(dict.viewOrder)}</a></p>` : ""}${data.supportEmail ? `<p style="font-size:14px;color:#52525b">${e(getDictionary(data.locale).emails.doNotReply(data.supportEmail))}</p>` : ""}<p style="font-size:12px;color:#71717a">${e(dict.footer)}</p></main></body></html>`;
   return { subject: subjects[kind], html, text };
+}
+
+/** Double opt-in: the confirm link is the only action requested, no order or account is involved. */
+export function renderWaitlistConfirmEmail(confirmUrl: string, locale: Locale): { subject: string; html: string; text: string } {
+  const dict = getDictionary(locale).emails.waitlist;
+  const e = escapeHtml;
+  const url = safeHttpUrl(confirmUrl);
+  const text = [dict.confirmGreeting, dict.confirmText, url, dict.confirmIgnore, dict.footer].filter(Boolean).join("\n\n");
+  const html = `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f7f7f5;color:#171719;font-family:Arial,Helvetica,sans-serif"><main style="max-width:560px;margin:32px auto;background:#fff;padding:32px;border-radius:16px"><div style="font-size:28px;font-weight:900;letter-spacing:-1px">WAKPU</div><p style="margin-top:32px">${e(dict.confirmGreeting)}</p><h1 style="font-size:24px;line-height:1.2">${e(dict.confirmTitle)}</h1><p style="line-height:1.6">${e(dict.confirmText)}</p>${url ? `<p style="margin:28px 0"><a href="${e(url)}" style="display:inline-block;background:#171719;color:#fff;padding:16px 24px;border-radius:10px;text-decoration:none;font-weight:bold">${e(dict.confirmButton)}</a></p>` : ""}<p style="font-size:14px;color:#52525b">${e(dict.confirmIgnore)}</p><p style="font-size:12px;color:#71717a">${e(dict.footer)}</p></main></body></html>`;
+  return { subject: dict.confirmSubject, html, text };
+}
+
+/** Sent once per confirmed signup when the shop actually opens for orders. */
+export function renderWaitlistLaunchEmail(shopUrl: string, locale: Locale): { subject: string; html: string; text: string } {
+  const dict = getDictionary(locale).emails.waitlist;
+  const e = escapeHtml;
+  const url = safeHttpUrl(shopUrl);
+  const text = [dict.launchGreeting, dict.launchText, url, dict.footer].filter(Boolean).join("\n\n");
+  const html = `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f7f7f5;color:#171719;font-family:Arial,Helvetica,sans-serif"><main style="max-width:560px;margin:32px auto;background:#fff;padding:32px;border-radius:16px"><div style="font-size:28px;font-weight:900;letter-spacing:-1px">WAKPU</div><p style="margin-top:32px">${e(dict.launchGreeting)}</p><h1 style="font-size:24px;line-height:1.2">${e(dict.launchTitle)}</h1><p style="line-height:1.6">${e(dict.launchText)}</p>${url ? `<p style="margin:28px 0"><a href="${e(url)}" style="display:inline-block;background:#171719;color:#fff;padding:16px 24px;border-radius:10px;text-decoration:none;font-weight:bold">${e(dict.launchButton)}</a></p>` : ""}<p style="font-size:12px;color:#71717a">${e(dict.footer)}</p></main></body></html>`;
+  return { subject: dict.launchSubject, html, text };
 }

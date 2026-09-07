@@ -17,6 +17,8 @@ before(async () => {
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
   const migration = await readFile(new URL('../supabase/migrations/202609060001_initial_shop.sql', import.meta.url), 'utf8');
   await db.exec(migration);
+  await db.exec(await readFile(new URL('../supabase/migrations/202609070001_waitlist_signups.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609070003_order_locale.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/seed.sql', import.meta.url), 'utf8'));
 });
 after(async () => { await db?.close(); });
@@ -361,6 +363,7 @@ test('anonymous and authenticated roles cannot read PII, supplier data or execut
       for (const query of [
         'select * from wakpu.orders', 'select * from wakpu.order_items', 'select * from wakpu.payments',
         'select * from wakpu.email_events', 'select * from wakpu.jobs', 'select * from wakpu.site_settings',
+        'select * from wakpu.waitlist_signups', "insert into wakpu.waitlist_signups(email,confirm_token) values('x@x.com',repeat('a',64))",
         'select supplier_sku from wakpu.product_variants', 'select wakpu.dashboard_metrics()',
         "select wakpu.freeze_checkout_params(gen_random_uuid(),'{}'::jsonb)",
         "select wakpu.claim_jobs('forged')", "select wakpu.create_pending_order('[]'::jsonb)",
@@ -376,4 +379,14 @@ test('claims require evidence and aggregates return real database counts', async
   const count = await scalar<number>('select count(*)::int from wakpu.orders');
   assert.equal(metrics.orders_today, count);
   assert.equal(metrics.revenue_today_cents, await scalar('select coalesce(sum(total_cents),0)::int from wakpu.orders where payment_status=$1', ['paid']));
+});
+
+test('waitlist signups reject malformed emails/tokens and cannot be duplicated', async () => {
+  const token = 'a'.repeat(64);
+  await assert.rejects(db.exec(`insert into wakpu.waitlist_signups(email,confirm_token) values('not-an-email','${token}')`), /waitlist_signups_email_check/);
+  await assert.rejects(db.exec(`insert into wakpu.waitlist_signups(email,confirm_token) values('ok@example.com','short')`), /waitlist_signups_confirm_token_check/);
+  await db.exec(`insert into wakpu.waitlist_signups(email,confirm_token) values('dup@example.com','${token}')`);
+  await assert.rejects(db.exec(`insert into wakpu.waitlist_signups(email,confirm_token) values('dup@example.com','${'b'.repeat(64)}')`), /waitlist_signups_email_key/);
+  await assert.rejects(db.exec(`insert into wakpu.waitlist_signups(email,confirm_token) values('other@example.com','${token}')`), /waitlist_signups_confirm_token_key/);
+  assert.equal(await scalar('select confirmed_at from wakpu.waitlist_signups where email=$1', ['dup@example.com']), null);
 });

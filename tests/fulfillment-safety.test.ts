@@ -41,7 +41,7 @@ test("email retries stop before Resend's 24-hour idempotency retention expires",
 test("email templates escape customer and supplier content and reject executable URLs", () => {
   const data: OrderEmailData = {
     orderNumber: "WK-10001", firstName: '<img src=x onerror="alert(1)">', totalCents: 990, shippingCents: 0,
-    statusUrl: "https://wakpu.ch/bestellung/WK-10001?token=secret&test=1", supportEmail: "support@example.com", shippingText: "Wird vor Bestellstart festgelegt.",
+    statusUrl: "https://wakpu.ch/bestellung/WK-10001?token=secret&test=1", supportEmail: "support@example.com", shippingText: "Wird vor Bestellstart festgelegt.", locale: "de",
     items: [{ name: "WAKPU <script>alert(1)</script>", quantity: 1, totalCents: 990 }],
     trackingNumber: '<svg onload="alert(1)">', trackingUrl: "javascript:alert(1)", mock: true,
   };

@@ -1,7 +1,9 @@
 import { z } from 'zod';
+import { locales } from '@/i18n/locales';
 export const checkoutSchema = z.object({
   requestId: z.uuid(),
   items:z.array(z.object({variantId:z.uuid(),quantity:z.number().int().min(1).max(10)}).strict()).min(1).max(10),
+  locale:z.enum(locales),
 }).strict().superRefine((data,ctx)=>{
   if(new Set(data.items.map(i=>i.variantId)).size!==data.items.length) ctx.addIssue({code:'custom',message:'Duplicate variants'});
   if(data.items.reduce((n,i)=>n+i.quantity,0)>30) ctx.addIssue({code:'custom',message:'Too many items'});

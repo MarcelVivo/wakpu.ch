@@ -37,6 +37,7 @@ export type Order = Timestamps & {
   currency: "chf"; subtotal_cents: number; shipping_cents: number; total_cents: number;
   payment_status: PaymentStatus; order_status: OrderStatus; stripe_checkout_session_id: string | null;
   stripe_checkout_params: Json | null; stripe_payment_intent_id: string | null; fulfillment_status: FulfillmentStatus;
+  locale: "de" | "en" | "fr" | "it";
 };
 export type OrderItem = {
   id: string; order_id: string; product_id: string | null; variant_id: string | null;
@@ -113,7 +114,7 @@ export type Database = {
     };
     Views: { site_public_settings: { Row: PublicSiteSettings; Relationships: [] } };
     Functions: {
-      create_pending_order: { Args: { p_items: Json; p_request_id?: string; p_cart_fingerprint?: string }; Returns: Json };
+      create_pending_order: { Args: { p_items: Json; p_request_id?: string; p_cart_fingerprint?: string; p_locale?: string }; Returns: Json };
       freeze_checkout_params: { Args: { p_order_id: string; p_params: Json }; Returns: Json };
       finalize_paid_order: { Args: { p_event_id: string; p_order_id: string; p_session_id: string; p_payment_intent_id: string; p_amount_total: number; p_currency: string; p_customer: Json }; Returns: Json };
       record_payment_event: { Args: { p_event_id: string; p_event_type: string; p_payment_intent_id: string; p_amount_refunded?: number; p_order_id?: string }; Returns: Json };

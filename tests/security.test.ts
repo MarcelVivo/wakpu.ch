@@ -5,10 +5,11 @@ import { orderAccessToken,verifyOrderAccess,buildOrderStatusUrl } from '../src/l
 const variant='10000000-0000-4000-8000-000000000001';
 const requestId='20000000-0000-4000-8000-000000000001';
 test('checkout rejects client prices, duplicated variants and invalid quantities',()=>{
-  assert.ok(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1}]}).success);
-  for(const quantity of [0,-1,1.5,11,NaN])assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity}]}).success,false);
-  assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1,price:1}]}).success,false);
-  assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1},{variantId:variant,quantity:2}]}).success,false);
+  assert.ok(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1}],locale:'de'}).success);
+  for(const quantity of [0,-1,1.5,11,NaN])assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity}],locale:'de'}).success,false);
+  assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1,price:1}],locale:'de'}).success,false);
+  assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1},{variantId:variant,quantity:2}],locale:'de'}).success,false);
+  assert.equal(checkoutSchema.safeParse({requestId,items:[{variantId:variant,quantity:1}],locale:'xx'}).success,false);
 });
 test('Swiss address validation rejects other countries and malformed postcodes',()=>{
   const address={email:'test@example.com',first_name:'Test',last_name:'Kunde',phone:null,address_line1:'Teststrasse 1',address_line2:null,postal_code:'8000',city:'Zürich',country:'CH'};

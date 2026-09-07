@@ -25,11 +25,11 @@ export async function POST(request:Request) {
     const items=parsed.data.items.map(i=>({variant_id:i.variantId,quantity:i.quantity})).sort((a,b)=>a.variant_id.localeCompare(b.variant_id));
     const fingerprint=createHash('sha256').update(JSON.stringify(items)).digest('hex');
     const db=getAdminSupabase();
-    const {data,error}=await db.rpc('create_pending_order',{p_items:items,p_request_id:parsed.data.requestId,p_cart_fingerprint:fingerprint});
+    const {data,error}=await db.rpc('create_pending_order',{p_items:items,p_request_id:parsed.data.requestId,p_cart_fingerprint:fingerprint,p_locale:parsed.data.locale});
     if(error){logEvent('checkout.validation_rejected',{code:error.code});return apiError('Ein Produkt ist nicht mehr verfügbar. Bitte lade den Shop neu und prüfe deinen Warenkorb.',409);}
     const order=data as CheckoutSnapshot;
     const stripe=getStripe();
-    const {data:existing,error:lookupError}=await db.from('orders').select('stripe_checkout_session_id,stripe_checkout_params,payment_status,created_at').eq('id',order.order_id).single();
+    const {data:existing,error:lookupError}=await db.from('orders').select('stripe_checkout_session_id,stripe_checkout_params,payment_status,created_at,locale').eq('id',order.order_id).single();
     if(lookupError)throw lookupError;
     if(existing.payment_status==='paid'||existing.payment_status==='refunded')return apiError('Dieser Bestellversuch ist bereits abgeschlossen. Bitte öffne den Warenkorb erneut.',409);
     if(existing.stripe_checkout_session_id){
@@ -43,7 +43,7 @@ export async function POST(request:Request) {
     let frozen=existing.stripe_checkout_params;
     if(!frozen){
       const {data:params,error:freezeError}=await db.rpc('freeze_checkout_params',{
-        p_order_id:order.order_id,p_params:checkoutParameters(order,siteUrl(),settings.default_shipping_text,expiresAt),
+        p_order_id:order.order_id,p_params:checkoutParameters(order,siteUrl(),settings.default_shipping_text,expiresAt,existing.locale),
       });
       if(freezeError||!params)throw new Error('CHECKOUT_SNAPSHOT');frozen=params;
     }
