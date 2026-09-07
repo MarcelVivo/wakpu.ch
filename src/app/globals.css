@@ -73,6 +73,7 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
 
 .hero-scroll-wrapper { position: relative; }
 .hero-pinned { position: sticky; top: 0; height: 100svh; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--paper); }
+.hero-bg-image { object-fit: cover; z-index: -1; }
 .hero-bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
 .hero-overlay { position: relative; z-index: 2; width: min(100% - 48px, 900px); display: flex; flex-direction: column; align-items: center; text-align: center; pointer-events: none; }
 .hero-overlay::before { content: ''; position: absolute; inset: -15vh -10vw; z-index: -1; background: radial-gradient(ellipse at center, rgba(247,247,242,.6) 0%, rgba(247,247,242,0) 70%); }

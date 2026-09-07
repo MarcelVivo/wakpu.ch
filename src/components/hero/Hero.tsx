@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { ArrowRight, LockKeyhole, PackageCheck } from "lucide-react";
 import type { Locale } from "@/i18n/locales";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -73,7 +74,8 @@ export function Hero({ locale }: { locale: Locale }) {
 
   return <section className="hero-scroll-wrapper" style={{ height: `${PIN_VH}vh` }} ref={wrapperRef} id="hero" aria-labelledby="hero-heading">
     <div className="hero-pinned">
-      {!videoFailed && <video ref={videoRef} className="hero-bg-video" muted playsInline preload="auto" poster="/images/wakpu-hero-collision.jpg" aria-hidden="true" onError={() => setVideoFailed(true)}><source media="(max-width: 700px)" src="/video/wakpu-hero-mobile.mp4" type="video/mp4" /><source src="/video/wakpu-hero.mp4" type="video/mp4" /></video>}
+      <Image src="/images/wakpu-hero-collision.jpg" alt="" fill priority sizes="100vw" className="hero-bg-image" aria-hidden="true" />
+      {!videoFailed && <video ref={videoRef} className="hero-bg-video" muted playsInline preload="auto" poster="/images/wakpu-hero-collision.jpg" aria-hidden="true" onError={() => setVideoFailed(true)}><source src="/video/wakpu-hero.mp4" type="video/mp4" /></video>}
       <div className="hero-overlay">
         <div className="hero-slide-text" ref={textRef}>
           <div className="trend-label"><span aria-hidden="true" />{dict.trendLabel}</div>
