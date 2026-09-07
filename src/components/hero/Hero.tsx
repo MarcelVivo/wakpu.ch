@@ -73,7 +73,7 @@ export function Hero({ locale }: { locale: Locale }) {
 
   return <section className="hero-scroll-wrapper" style={{ height: `${PIN_VH}vh` }} ref={wrapperRef} id="hero" aria-labelledby="hero-heading">
     <div className="hero-pinned">
-      {!videoFailed && <video ref={videoRef} className="hero-bg-video" muted playsInline preload="auto" poster="/images/wakpu-hero-collision.jpg" aria-hidden="true" onError={() => setVideoFailed(true)}><source src="/video/wakpu-hero.mp4" type="video/mp4" /></video>}
+      {!videoFailed && <video ref={videoRef} className="hero-bg-video" muted playsInline preload="auto" poster="/images/wakpu-hero-collision.jpg" aria-hidden="true" onError={() => setVideoFailed(true)}><source media="(max-width: 700px)" src="/video/wakpu-hero-mobile.mp4" type="video/mp4" /><source src="/video/wakpu-hero.mp4" type="video/mp4" /></video>}
       <div className="hero-overlay">
         <div className="hero-slide-text" ref={textRef}>
           <div className="trend-label"><span aria-hidden="true" />{dict.trendLabel}</div>
