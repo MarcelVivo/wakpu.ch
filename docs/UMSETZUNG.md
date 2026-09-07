@@ -1,4 +1,4 @@
-# Übergabe WAKPU – 6. September 2026
+# Übergabe WAKPU – aktualisiert am 7. September 2026
 
 ## Ergebnis
 
@@ -6,9 +6,10 @@ Neues eigenständiges Next.js-Projekt aus zuvor leerem Ordner. Implementiert: La
 
 ## Geprüft
 
-- 34/34 Tests bestanden: echte PostgreSQL-Migration/RPCs via PGlite, Webhook-/Checkout-Idempotenz, Preis-Snapshots, CHF, Auftragsreservierungen, Refund-Reihenfolgen, Limits, Versand-/E-Mail-Transaktionen, RLS-Rechte, Tokens und Mock über Prozessneustarts.
+- 37/37 Tests bestanden: echte PostgreSQL-Migration/RPCs via PGlite, Webhook-/Checkout-Idempotenz, Preis-Snapshots, CHF, Auftragsreservierungen, Refund-Reihenfolgen, Limits, Versand-/E-Mail-Transaktionen, RLS-Rechte, Tokens und Mock über Prozessneustarts. Drei zusätzliche Regressionstests prüfen das gemeinsame Projekt: bestehende `public`-/`auth`-Objekte inklusive Daten und Rechten bleiben erhalten, geerbte breite Standardrechte legen keine privaten WAKPU-Daten offen, ein vorhandenes `wakpu`-Schema stoppt die Installation unverändert.
 - ESLint ohne Fehler/Warnungen; strict TypeScript ohne Fehler.
 - Produktionsbuild mit `npm run build` (`next build --webpack`) erfolgreich. Turbopack-Build scheiterte in dieser lokalen Umgebung am internen Prozess-Port; der offiziell unterstützte Webpack-Build ist als reproduzierbarer Standard eingestellt.
+- Gebaute Website per HTTP gegen isolierte PGlite-Katalog-Fixture geprüft: HTTP 200 und drei Produktkarten; die Fixture verweigert Anfragen ohne `Accept-Profile: wakpu`. Keine echte Supabase-Verbindung für diese Prüfung verwendet.
 - Browser: 375, 390, 430, 768, 1024, 1440 und 1920 px; keine horizontalen Überläufe. Zusätzlich WebKit/iPhone 390 px geprüft.
 - Warenkorb mit tatsächlichem SQL-Seed in isolierter Testdatenbank: Add/Remove, Menge, Reload/Persistenz, gefälschte Browserpreise, Sticky-Leiste, Checkout-Request und Fehlerfall geprüft.
 - 301 auf allen drei Alias-Domains mit erhaltenem Pfad/Query lokal per Host-Header geprüft.
@@ -39,7 +40,7 @@ Prüfungen liefen mit Node 22.23.2 aus dem isolierten temporären Toolchain-Ordn
 ## Noch einzurichten
 
 1. `.env.example` nach `.env.local` kopieren. Pflichtangaben: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_EMAIL`, `CRON_SECRET`, `ORDER_ACCESS_SECRET`. Provider zunächst `mock`. Der Stripe-Publishable-Key ist für gehosteten Checkout optional.
-2. Supabase-Projekt erstellen, Migration und Seed ausführen, bestätigten Admin-Benutzer anlegen. Für Mock-Test Wartungsmodus deaktivieren und Fulfillment aktivieren.
+2. Bestehendes Supabase-Projekt `marcelspahr-ch` verwenden, Initialmigration und Seed im eigenen Schema `wakpu` ausführen und `wakpu` zu den Exposed schemas hinzufügen. Bestätigtes eigenes Admin-Konto verwenden. Anleitung: `docs/SUPABASE_SHARED_PROJECT.md`. Für Mock-Test nach Konfiguration Wartungsmodus deaktivieren und Fulfillment aktivieren.
 3. Stripe-Testschlüssel und Webhook einrichten; API-Version `2026-08-26.dahlia`. Echte Testbestellung über den Shop durchführen.
 4. Resend-Domain verifizieren, Absender und Schlüssel setzen; Bestell-/Versandmails kontrollieren.
 5. Unternehmensangaben, Lieferzeit/-ursprung, geprüfte Produktinformationen und freigegebene AGB/Datenschutz ergänzen.

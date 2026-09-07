@@ -20,23 +20,26 @@ Alternativ `npm ci` für eine reproduzierbare Installation mit der eingecheckten
 
 ## 2. Supabase einrichten
 
-1. Neues Supabase-Projekt anlegen. Geeignete Region und Datenbearbeitungsverträge für deinen Betrieb auswählen.
-2. Im SQL Editor den vollständigen Inhalt von `supabase/migrations/202609060001_initial_shop.sql` ausführen. Weitere Dateien unter `supabase/migrations/` in Namensreihenfolge danach ausführen, falls vorhanden.
+1. Das bestehende Supabase-Projekt `marcelspahr-ch` verwenden. WAKPU erhält darin das eigene Schema `wakpu`; ein zusätzliches Projekt ist optional. Die Schritt-für-Schritt-Anleitung steht in [SUPABASE_SHARED_PROJECT.md](docs/SUPABASE_SHARED_PROJECT.md).
+2. Für die **Erstinstallation** im SQL Editor den vollständigen Inhalt von `supabase/migrations/202609060001_initial_shop.sql` einmal ausführen. Alle WAKPU-Tabellen, Funktionen und die Sequenz entstehen in `wakpu`. Existiert das Schema bereits, bricht die Transaktion ab; dann nicht löschen oder zurücksetzen, sondern den vorhandenen Stand prüfen. Diese vor dem ersten Datenbank-Deployment angepasste Initialmigration überführt keine ältere WAKPU-Installation aus `public`.
 3. Anschliessend `supabase/seed.sql` ausführen. Nur die Seed-Datei enthält die anfänglichen Verkaufspreise. Wiederholtes Seeding setzt vorhandene Produktpreise nicht zurück.
-4. Projekt-URL, Anon-Key und Service-Role-Key in `.env.local` setzen. Der Service-Role-Key bleibt ausschliesslich auf dem Server. Die Migration entzieht anonymen und angemeldeten Browsern Zugriff auf Bestellungen, Zahlungen, Jobs, interne Einstellungen, Logs und Lieferanten-SKUs; RLS ist für alle Tabellen aktiv.
-5. Unter Authentication einen eigenen Benutzer mit Passwort erstellen und die E-Mail verifizieren/bestätigen. Exakt diese Adresse als `ADMIN_EMAIL` setzen. Es gibt keine öffentliche Registrierung. `/admin/login` prüft Supabase Auth serverseitig und erlaubt nur dieses bestätigte Konto.
-6. In `/admin/settings` Kontakt, Unternehmensangaben, Versandhinweise und Kosten eintragen. Alternativ den Singleton-Datensatz `site_settings` (`id=true`) im Supabase Table Editor bearbeiten.
-7. Für den **Testbetrieb** Wartungsmodus deaktivieren und Fulfillment aktivieren. `FULFILLMENT_PROVIDER=mock` beibehalten. Mock-Lieferantenkosten sind 0; `max_supplier_order_cost_cents=0` ist für Mock ausreichend. Der Mock gibt deterministische `MOCK-…`-Bestellreferenzen zurück und kauft nichts ein.
+4. In den Supabase-API-Einstellungen `wakpu` zu **Exposed schemas** hinzufügen und die vorhandenen Einträge beibehalten. Der Anwendungscode verwendet fest `db.schema = 'wakpu'`. Die nötigen eingeschränkten Datenbankrechte setzt bereits die Migration; keine zusätzlichen pauschalen Grants ausführen.
+5. Projekt-URL, Anon-Key und Service-Role-Key in `.env.local` bzw. Vercel setzen. Der Service-Role-Key bleibt ausschliesslich auf dem Server. Die Migration entzieht anonymen und angemeldeten Browsern Zugriff auf Bestellungen, Zahlungen, Jobs, interne Einstellungen, Logs und Lieferanten-SKUs; RLS ist für alle WAKPU-Tabellen aktiv.
+6. Unter Authentication ein bereits bestätigtes eigenes Konto verwenden oder einen Benutzer mit Passwort anlegen und bestätigen. Exakt diese Adresse als `ADMIN_EMAIL` setzen. WAKPU bietet keine öffentliche Registrierung. `/admin/login` prüft Supabase Auth serverseitig und erlaubt nur dieses bestätigte Konto. Gemeinsame Auth-Einstellungen und bestehende Benutzer nicht für WAKPU umstellen.
+7. In `/admin/settings` Kontakt, Unternehmensangaben, Versandhinweise und Kosten eintragen. Alternativ den Singleton-Datensatz `wakpu.site_settings` (`id=true`) im Supabase Table Editor bearbeiten.
+8. Für den **Testbetrieb** nach Einrichtung von Stripe-Testschlüsseln und Resend Wartungsmodus deaktivieren und Fulfillment aktivieren. `FULFILLMENT_PROVIDER=mock` beibehalten. Mock-Lieferantenkosten sind 0; `max_supplier_order_cost_cents=0` ist für Mock ausreichend. Der Mock gibt deterministische `MOCK-…`-Bestellreferenzen zurück und kauft nichts ein.
 
 Tabellen: `products`, `product_variants`, `orders`, `order_items`, `payments`, `fulfillment_orders`, `shipments`, `webhook_events`, `email_events`, `jobs`, `site_settings`, `verified_claims`, `admin_logs`. `jobs` ist die dauerhafte Outbox mit atomarer Reservierung, Wiederholungen, Backoff und Ablauf von Reservierungen. `site_public_settings` gibt nur öffentliche Angaben frei.
 
-Supabase CLI als Alternative: Projekt verknüpfen, `supabase db push`; Seed gezielt ausführen. `supabase db reset` nur gegen eine entbehrliche lokale Entwicklungsdatenbank verwenden.
+Alle genannten Datenbankobjekte gehören zum Schema `wakpu`. Die Migration ändert keine bestehenden `public`- oder `auth`-Objekte. Auth, Ressourcen, Backups und der Service-Role-Schlüssel bleiben projektweit gemeinsam; ein Schema ist keine vollständig isolierte Projektinstanz.
+
+Supabase CLI nur mit abgestimmter Migrationshistorie des gemeinsamen Projekts verwenden. Für diese Erstinstallation im bestehenden Projekt den SQL Editor nutzen. `supabase db reset` nur gegen eine entbehrliche lokale Entwicklungsdatenbank verwenden.
 
 ## 3. Environment
 
 | Variable | Verwendung |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Lokal `http://localhost:3000`; Produktion exakt `https://wakpu.ch`. Auch Origin-Prüfung und Bestelllinks. |
+| `NEXT_PUBLIC_SITE_URL` | Exakte aufgerufene Shop-Adresse: lokal z. B. `http://127.0.0.1:3000`, aktuell `https://wakpu-ch.vercel.app`, nach Domain-Einrichtung `https://wakpu.ch`. Auch Origin-Prüfung und Bestelllinks. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase-Projekt-URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Öffentlicher Anon-Key für Auth |
 | `SUPABASE_SERVICE_ROLE_KEY` | Privater Serverzugriff, niemals `NEXT_PUBLIC_` |
