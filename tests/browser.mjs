@@ -17,9 +17,9 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(`${width}: ${error.message}`));
     await page.goto(baseURL, { waitUntil: 'networkidle' });
-    await page.locator('.hero-video').waitFor();
+    await page.locator('.hero-bg-video').waitFor();
     assert.equal(await page.locator('h1').innerText(), 'CRACK IT.\nFEEL IT.');
-    assert(await page.locator('.hero-video').evaluate(video => Boolean(video.poster)), `Hero video poster must be set at ${width}px`);
+    assert(await page.locator('.hero-bg-video').evaluate(video => Boolean(video.poster)), `Hero video poster must be set at ${width}px`);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Horizontal page overflow at ${width}px`);
     await page.screenshot({ path: `${output}/home-${width}.png`, fullPage: true });
     if ([390, 1440].includes(width)) await page.screenshot({ path: `${output}/hero-${width}.png` });
@@ -50,8 +50,8 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(500);
-  assert.equal(await page.locator('.hero-video').count(), 1, 'Hero video is present');
-  assert(await page.locator('.hero-video').evaluate(video => video.readyState >= 1), 'Hero video metadata loads');
+  assert.equal(await page.locator('.hero-bg-video').count(), 1, 'Hero video is present');
+  assert(await page.locator('.hero-bg-video').evaluate(video => video.readyState >= 1), 'Hero video metadata loads');
   for (const route of ['/kontakt','/versand','/agb','/datenschutz','/impressum']) {
     const response = await page.goto(`${baseURL}${route}`, { waitUntil: 'networkidle' });
     assert.equal(response.status(), 200, `${route} exists`);
