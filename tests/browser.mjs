@@ -17,9 +17,9 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(`${width}: ${error.message}`));
     await page.goto(baseURL, { waitUntil: 'networkidle' });
-    await page.locator('.hero-product-image').waitFor();
+    await page.locator('.hero-video').waitFor();
     assert.equal(await page.locator('h1').innerText(), 'CRACK IT.\nFEEL IT.');
-    assert(await page.locator('.hero-product-image').evaluate(image => image.complete && image.naturalWidth > 0), `Hero image must load at ${width}px`);
+    assert(await page.locator('.hero-video').evaluate(video => Boolean(video.poster)), `Hero video poster must be set at ${width}px`);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Horizontal page overflow at ${width}px`);
     await page.screenshot({ path: `${output}/home-${width}.png`, fullPage: true });
     if ([390, 1440].includes(width)) await page.screenshot({ path: `${output}/hero-${width}.png` });
@@ -42,7 +42,7 @@ try {
     await page.locator('.demo-panel').scrollIntoViewIfNeeded();
     await page.waitForTimeout(100);
     if (!await page.locator('.demo-play').count()) assert(await page.getByText('Der Sound zum Bild kommt bald.').isVisible(), 'Missing demo has honest static fallback');
-    console.log(`PASS ${width}px: no overflow, image, cart focus trap/Escape/restore, FAQ, demo fallback`);
+    console.log(`PASS ${width}px: no overflow, hero video, cart focus trap/Escape/restore, FAQ, demo fallback`);
     await context.close();
   }
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -50,8 +50,8 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(500);
-  assert.equal(await page.locator('.hero-video').count(), 0, 'Missing hero videos fall back to poster');
-  assert(await page.locator('.hero-product-image').isVisible());
+  assert.equal(await page.locator('.hero-video').count(), 1, 'Hero video is present');
+  assert(await page.locator('.hero-video').evaluate(video => video.readyState >= 1), 'Hero video metadata loads');
   for (const route of ['/kontakt','/versand','/agb','/datenschutz','/impressum']) {
     const response = await page.goto(`${baseURL}${route}`, { waitUntil: 'networkidle' });
     assert.equal(response.status(), 200, `${route} exists`);
@@ -62,7 +62,7 @@ try {
   assert(/\/admin\/login/.test(page.url()) || /Admin-Zugang|Anmelden|Konfiguration/.test(await page.locator('body').innerText()), 'Admin is protected');
   await context.close();
   assert.deepEqual(errors, [], 'No uncaught browser errors');
-  console.log('PASS legal routes, admin protection and automatic hero fallback');
+  console.log('PASS legal routes, admin protection and hero video loading');
 } finally { await browser.close(); }
 
 if (process.env.WAKPU_TEST_WEBKIT === '1') {

@@ -49,6 +49,8 @@ export const en: Dictionary = {
     stepWords: ["PRESS", "CRACK", "FEEL"],
     scrollLabel: "KEEP FEELING",
     scrollAria: "Discover WAKPU, scroll down",
+    unmuteAria: "Unmute sound",
+    muteAria: "Mute sound",
     mediaAlt: "Green WAKPU ball being cracked open by hand, breaking into pieces",
     imageAlt: "A glossy green wax cracking ball, squeezed by two hands until the shell breaks apart.",
     orbitLabel: "CRACK OUTSIDE.\nWOW INSIDE.",

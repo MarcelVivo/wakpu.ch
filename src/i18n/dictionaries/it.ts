@@ -49,6 +49,8 @@ export const it: Dictionary = {
     stepWords: ["PREMI", "CRACCA", "SENTI"],
     scrollLabel: "CONTINUA A SENTIRE",
     scrollAria: "Scopri WAKPU, scorri verso il basso",
+    unmuteAria: "Attiva audio",
+    muteAria: "Disattiva audio",
     mediaAlt: "Pallina WAKPU verde che viene craccata a mano e si rompe in pezzi",
     imageAlt: "Una pallina wax cracking verde e lucida, schiacciata da due mani finché il guscio non si rompe.",
     orbitLabel: "FUORI CRACK.\nDENTRO WOW.",

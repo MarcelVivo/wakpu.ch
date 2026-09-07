@@ -49,6 +49,8 @@ export const fr: Dictionary = {
     stepWords: ["PRESSER", "CRAQUER", "RESSENTIR"],
     scrollLabel: "CONTINUER À RESSENTIR",
     scrollAria: "Découvrir WAKPU, défiler vers le bas",
+    unmuteAria: "Activer le son",
+    muteAria: "Couper le son",
     mediaAlt: "Balle WAKPU verte craquée à la main, qui se brise en morceaux",
     imageAlt: "Une balle wax cracking verte et brillante, pressée par deux mains jusqu'à ce que la coque se brise.",
     orbitLabel: "CRAQUANT DEHORS.\nWOW DEDANS.",

@@ -88,11 +88,12 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
 .hero-trust-divider { width: 2px; height: 2px; border-radius: 50%; background: #95988c; }
 .hero-media { mix-blend-mode: multiply; position: absolute; width: 67%; height: calc(100% - 22px); top: -15px; right: -5%; z-index: 1; }
 .hero-product-image { object-fit: contain; mix-blend-mode: multiply; mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 84%, transparent 100%); }
-.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; mix-blend-mode: multiply; transition: opacity .4s; }
-.hero-video.is-playing { opacity: 1; }
+.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+.hero-sound-toggle { position: absolute; left: 4%; bottom: 5%; background: #ffffffed; mix-blend-mode: normal; }
+.hero-sound-toggle:hover { background: #ffffff; }
 .product-orbit-label { position: absolute; top: 12%; right: 14%; display: flex; align-items: center; gap: 12px; transform: rotate(8deg); }
 .product-orbit-label > span:last-child { font-size: 8px; font-weight: 650; letter-spacing: .08em; line-height: 1.4; }
-.little-spark { display: inline-block; font-size: 37px; font-weight: 300; line-height: 1; }
+.little-spark { display: inline-block; width: 34px; height: 34px; flex-shrink: 0; }
 .hero-product-note { position: absolute; right: 3%; bottom: 19%; display: flex; align-items: flex-start; gap: 0; transform: rotate(-7deg); }
 .hero-product-note > span { font-size: 13px; line-height: 1.4; font-style: italic; letter-spacing: -.035em; }
 .hero-product-note svg { margin-top: -25px; transform: rotate(19deg); }
@@ -205,7 +206,7 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
 .faq-intro h2 { margin-top: 25px; }
 .faq-intro > p:not(.eyebrow) { font-size: 12px; color: #656e5b; margin-top: 25px; }
 .faq-intro > .text-link { margin-top: 15px; }
-.faq-asterisk { display: block; font-size: 120px; font-weight: 300; color: #c3caac; line-height: 1; margin-top: 38px; transform: rotate(-10deg); width: 120px; }
+.faq-asterisk { display: block; width: 120px; height: 120px; color: #c3caac; margin-top: 38px; transform: rotate(-10deg); }
 .faq-list { border-top: 1px solid #d2d5c7; }
 .faq-item { border-bottom: 1px solid #d2d5c7; }
 .faq-item summary { min-height: 68px; display: flex; align-items: center; gap: 18px; padding: 18px 0; list-style: none; font-size: 13px; font-weight: 500; }
@@ -389,7 +390,7 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
   .hero-product-image { object-fit: contain; }
   .product-orbit-label { top: 8%; right: 8%; gap: 7px; transform: rotate(9deg); }
   .product-orbit-label > span:last-child { font-size: 6px; }
-  .little-spark { font-size: 27px; }
+  .little-spark { width: 25px; height: 25px; }
   .hero-product-note { right: 12%; bottom: 15%; }
   .hero-product-note > span { font-size: 10px; }
   .hero-product-note svg { width: 36px; margin-top: -20px; }
@@ -466,7 +467,7 @@ h2 { font-size: clamp(38px, 3.45vw, 58px); font-weight: 650; line-height: 1.06; 
   .faq-intro h2 { font-size: 39px; margin-top: 21px; }
   .faq-intro > p:not(.eyebrow) { margin-top: 20px; font-size: 11px; }
   .faq-intro > .text-link { font-size: 11px; margin-top: 11px; }
-  .faq-asterisk { font-size: 93px; position: absolute; right: 0; bottom: -3px; margin: 0; width: 88px; }
+  .faq-asterisk { position: absolute; right: 0; bottom: -3px; margin: 0; width: 88px; height: 88px; }
   .faq-item summary { font-size: 11px; min-height: 64px; gap: 14px; padding: 18px 0; }
   .faq-number { font-size: 8px; }
   .faq-item summary > svg { width: 17px; }
