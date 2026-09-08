@@ -33,7 +33,7 @@ export async function updatePassword(form:FormData){
   const {data:{user}}=await auth.auth.getUser();
   if(!user||!adminEmails().includes(user.email?.toLowerCase()??''))redirect('/dashboard/login?status=error');
   const {error}=await auth.auth.updateUser({password:parsed.data.password});
-  if(error)redirect('/dashboard/reset-password?status=error');
+  if(error)redirect(`/dashboard/reset-password?status=error&reason=${encodeURIComponent(error.message)}`);
   redirect('/dashboard?status=saved');
 }
 async function audit(userId:string,action:string,entityId:string){
