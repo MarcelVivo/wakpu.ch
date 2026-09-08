@@ -9,37 +9,44 @@ import { getRawSettings } from '@/lib/catalog';
 import { requiredEnv, siteUrl } from '@/lib/env';
 import { apiError, assertSameOrigin, readJson } from '@/lib/http';
 import { logEvent } from '@/lib/logger';
+import { isLocale, type Locale } from '@/i18n/locales';
+import { getDictionary } from '@/i18n/get-dictionary';
 export const runtime='nodejs';
 export const maxDuration=60;
 export async function POST(request:Request) {
+  let locale:Locale='de';
   try {
     assertSameOrigin(request);
-    const parsed=checkoutSchema.safeParse(await readJson(request));
-    if(!parsed.success)return apiError('Bitte prüfe deinen Warenkorb.',400);
+    const body=await readJson(request);
+    const rawLocale=body&&typeof body==='object'?(body as {locale?:unknown}).locale:undefined;
+    if(typeof rawLocale==='string'&&isLocale(rawLocale))locale=rawLocale;
+    const errors=getDictionary(locale).checkoutErrors;
+    const parsed=checkoutSchema.safeParse(body);
+    if(!parsed.success)return apiError(errors.invalidCart,400);
     requiredEnv('STRIPE_WEBHOOK_SECRET');requiredEnv('CRON_SECRET');
     if(requiredEnv('ORDER_ACCESS_SECRET').length<32)throw new Error('CONFIG');
     const settings=await getRawSettings();
-    if(!settings||settings.shop_maintenance)return apiError('Der Shop ist noch nicht für Bestellungen geöffnet.',503);
+    if(!settings||settings.shop_maintenance)return apiError(errors.shopClosed,503);
     const live=requiredEnv('STRIPE_SECRET_KEY').includes('_live_');
-    if(live&&(!settings.legal_ready||!settings.business_name||!settings.business_address||!settings.business_postal_city||!settings.support_email||!settings.default_shipping_text||!settings.shipping_origin_text||!settings.legal_terms||!settings.privacy_notice||(process.env.FULFILLMENT_PROVIDER||'mock')==='mock'))return apiError('Bestellungen sind noch nicht freigeschaltet.',503);
+    if(live&&(!settings.legal_ready||!settings.business_name||!settings.business_address||!settings.business_postal_city||!settings.support_email||!settings.default_shipping_text||!settings.shipping_origin_text||!settings.legal_terms||!settings.privacy_notice||(process.env.FULFILLMENT_PROVIDER||'mock')==='mock'))return apiError(errors.notLive,503);
     const items=parsed.data.items.map(i=>({variant_id:i.variantId,quantity:i.quantity})).sort((a,b)=>a.variant_id.localeCompare(b.variant_id));
     const fingerprint=createHash('sha256').update(JSON.stringify(items)).digest('hex');
     const db=getAdminSupabase();
     const {data,error}=await db.rpc('create_pending_order',{p_items:items,p_request_id:parsed.data.requestId,p_cart_fingerprint:fingerprint,p_locale:parsed.data.locale});
-    if(error){logEvent('checkout.validation_rejected',{code:error.code});return apiError('Ein Produkt ist nicht mehr verfügbar. Bitte lade den Shop neu und prüfe deinen Warenkorb.',409);}
+    if(error){logEvent('checkout.validation_rejected',{code:error.code});return apiError(errors.productUnavailable,409);}
     const order=data as CheckoutSnapshot;
     const stripe=getStripe();
     const {data:existing,error:lookupError}=await db.from('orders').select('stripe_checkout_session_id,stripe_checkout_params,payment_status,created_at,locale').eq('id',order.order_id).single();
     if(lookupError)throw lookupError;
-    if(existing.payment_status==='paid'||existing.payment_status==='refunded')return apiError('Dieser Bestellversuch ist bereits abgeschlossen. Bitte öffne den Warenkorb erneut.',409);
+    if(existing.payment_status==='paid'||existing.payment_status==='refunded')return apiError(errors.orderAlreadyDone,409);
     if(existing.stripe_checkout_session_id){
       const session=await stripe.checkout.sessions.retrieve(existing.stripe_checkout_session_id);
       if(session.status==='open'&&session.url)return NextResponse.json({url:session.url},{headers:{'Cache-Control':'no-store'}});
-      return apiError('Die Kassensitzung ist abgelaufen. Bitte starte eine neue Bestellung.',409);
+      return apiError(errors.sessionExpired,409);
     }
     // Stable expiration and idempotency key keep retries byte-equivalent, including concurrent requests.
     const expiresAt=Math.floor(new Date(existing.created_at).getTime()/1000)+3600;
-    if(expiresAt<Date.now()/1000+1800)return apiError('Bitte starte eine neue Bestellung.',409);
+    if(expiresAt<Date.now()/1000+1800)return apiError(errors.startNew,409);
     let frozen=existing.stripe_checkout_params;
     if(!frozen){
       const {data:params,error:freezeError}=await db.rpc('freeze_checkout_params',{
@@ -52,9 +59,10 @@ export async function POST(request:Request) {
     if(updateError||!session.url)throw new Error('CHECKOUT_PERSIST');
     return NextResponse.json({url:session.url},{headers:{'Cache-Control':'no-store'}});
   } catch(error){
+    const errors=getDictionary(locale).checkoutErrors;
     const code=error instanceof Error?error.message:'';
-    if(code==='ORIGIN')return apiError('Diese Anfrage ist nicht erlaubt.',403);
-    if(['CONTENT_TYPE','BODY_SIZE'].includes(code)||error instanceof SyntaxError)return apiError('Ungültige Anfrage.',400);
+    if(code==='ORIGIN')return apiError(errors.forbidden,403);
+    if(['CONTENT_TYPE','BODY_SIZE'].includes(code)||error instanceof SyntaxError)return apiError(errors.invalidRequest,400);
     logEvent('checkout.failed',{code:'CHECKOUT_ERROR'});return apiError();
   }
 }

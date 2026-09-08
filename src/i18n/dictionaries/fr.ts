@@ -183,6 +183,17 @@ export const fr: Dictionary = {
     more: (name: string) => `Plus de ${name}`,
     quantity: (name: string) => `Quantité ${name}`,
   },
+  checkoutErrors: {
+    invalidCart: "Merci de vérifier ton panier.",
+    shopClosed: "La boutique n'est pas encore ouverte aux commandes.",
+    notLive: "Les commandes ne sont pas encore activées.",
+    productUnavailable: "Un produit n'est plus disponible. Merci de recharger la boutique et de vérifier ton panier.",
+    orderAlreadyDone: "Cette tentative de commande est déjà terminée. Merci de rouvrir ton panier.",
+    sessionExpired: "La session de paiement a expiré. Merci de recommencer une nouvelle commande.",
+    startNew: "Merci de recommencer une nouvelle commande.",
+    forbidden: "Cette requête n'est pas autorisée.",
+    invalidRequest: "Requête invalide.",
+  },
   mobileCartBar: { orderNow: "COMMANDER MAINTENANT" },
   pages: {
     kontakt: {
@@ -236,6 +247,7 @@ export const fr: Dictionary = {
       areaHeading: "Zone de livraison",
       areaText: "Pour l'instant, les commandes ne sont prévues qu'avec une adresse de livraison en Suisse.",
       timeHeading: "Délai de livraison",
+      timeDefault: "Les délais de livraison seront communiqués avant le lancement.",
       costHeading: "Frais de livraison",
       costUnknown: "Les frais de livraison seront communiqués avant le lancement.",
       costKnown: (amount: string) => `Livraison par commande : ${amount}. Le montant total est affiché dans le panier et avant le paiement.`,
@@ -261,6 +273,7 @@ export const fr: Dictionary = {
     back: "Retour à la boutique",
   },
   checkoutSuccess: {
+    title: "Commande reçue",
     eyebrow: "MERCI POUR TON MOMENT WAKPU",
     titlePaid: "Ton WAKPU est commandé.",
     titlePending: "Nous vérifions ton paiement.",
@@ -271,11 +284,14 @@ export const fr: Dictionary = {
     backToShop: "Retour à la boutique",
   },
   orderStatus: {
+    title: "Ta commande",
     eyebrow: "TON MOMENT WAKPU",
     orderedOn: (date: string) => `Commandé le ${date}`,
     supportNote: "En cas de question, notre contact client se fera un plaisir de t'aider.",
     paidHeading: "Ta commande est chez nous.",
     pendingHeading: "Ton paiement est en cours de vérification.",
+    refundedHeading: "Remboursée",
+    cancelledHeading: "Annulée",
     steps: ["Commandé", "Payé", "En traitement", "Expédié", "Livré"],
     manualReview: "Nous sommes en train de clarifier les prochaines étapes pour ta commande.",
     shipmentHeading: "Ton envoi",

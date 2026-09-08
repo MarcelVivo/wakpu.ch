@@ -181,6 +181,17 @@ export const de = {
     more: (name: string) => `Mehr ${name}`,
     quantity: (name: string) => `Anzahl ${name}`,
   },
+  checkoutErrors: {
+    invalidCart: "Bitte prüfe deinen Warenkorb.",
+    shopClosed: "Der Shop ist noch nicht für Bestellungen geöffnet.",
+    notLive: "Bestellungen sind noch nicht freigeschaltet.",
+    productUnavailable: "Ein Produkt ist nicht mehr verfügbar. Bitte lade den Shop neu und prüfe deinen Warenkorb.",
+    orderAlreadyDone: "Dieser Bestellversuch ist bereits abgeschlossen. Bitte öffne den Warenkorb erneut.",
+    sessionExpired: "Die Kassensitzung ist abgelaufen. Bitte starte eine neue Bestellung.",
+    startNew: "Bitte starte eine neue Bestellung.",
+    forbidden: "Diese Anfrage ist nicht erlaubt.",
+    invalidRequest: "Ungültige Anfrage.",
+  },
   mobileCartBar: { orderNow: "JETZT BESTELLEN" },
   pages: {
     kontakt: {
@@ -234,6 +245,7 @@ export const de = {
       areaHeading: "Liefergebiet",
       areaText: "Bestellungen sind zunächst nur mit Lieferadresse in der Schweiz vorgesehen.",
       timeHeading: "Lieferzeit",
+      timeDefault: "Die Lieferzeit wird vor dem Verkaufsstart bekannt gegeben.",
       costHeading: "Versandkosten",
       costUnknown: "Die Versandkosten werden vor dem Verkaufsstart bekannt gegeben.",
       costKnown: (amount: string) => `Versand pro Bestellung: ${amount}. Der Gesamtbetrag wird im Warenkorb und vor der Zahlung angezeigt.`,
@@ -259,6 +271,7 @@ export const de = {
     back: "Zurück zum Shop",
   },
   checkoutSuccess: {
+    title: "Bestellung empfangen",
     eyebrow: "DANKE FÜR DEINEN WAKPU-MOMENT",
     titlePaid: "Dein WAKPU ist bestellt.",
     titlePending: "Wir prüfen deine Zahlung.",
@@ -269,11 +282,14 @@ export const de = {
     backToShop: "Zurück zum Shop",
   },
   orderStatus: {
+    title: "Deine Bestellung",
     eyebrow: "DEIN WAKPU-MOMENT",
     orderedOn: (date: string) => `Bestellt am ${date}`,
     supportNote: "Bei Fragen hilft dir unser Kundenkontakt weiter.",
     paidHeading: "Deine Bestellung ist bei uns.",
     pendingHeading: "Deine Zahlung wird geprüft.",
+    refundedHeading: "Erstattet",
+    cancelledHeading: "Storniert",
     steps: ["Bestellt", "Bezahlt", "In Bearbeitung", "Versendet", "Zugestellt"],
     manualReview: "Wir klären gerade die nächsten Schritte für deine Bestellung.",
     shipmentHeading: "Deine Sendung",

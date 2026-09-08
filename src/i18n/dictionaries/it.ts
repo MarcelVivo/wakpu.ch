@@ -183,6 +183,17 @@ export const it: Dictionary = {
     more: (name: string) => `Più ${name}`,
     quantity: (name: string) => `Quantità ${name}`,
   },
+  checkoutErrors: {
+    invalidCart: "Controlla il tuo carrello.",
+    shopClosed: "Lo shop non è ancora aperto agli ordini.",
+    notLive: "Gli ordini non sono ancora attivi.",
+    productUnavailable: "Un prodotto non è più disponibile. Ricarica lo shop e controlla il tuo carrello.",
+    orderAlreadyDone: "Questo tentativo di ordine è già stato completato. Riapri il carrello.",
+    sessionExpired: "La sessione di pagamento è scaduta. Avvia un nuovo ordine.",
+    startNew: "Avvia un nuovo ordine.",
+    forbidden: "Questa richiesta non è consentita.",
+    invalidRequest: "Richiesta non valida.",
+  },
   mobileCartBar: { orderNow: "ORDINA ORA" },
   pages: {
     kontakt: {
@@ -236,6 +247,7 @@ export const it: Dictionary = {
       areaHeading: "Area di consegna",
       areaText: "Per ora gli ordini sono previsti solo con indirizzo di consegna in Svizzera.",
       timeHeading: "Tempi di consegna",
+      timeDefault: "I tempi di consegna saranno comunicati prima del lancio.",
       costHeading: "Costi di spedizione",
       costUnknown: "I costi di spedizione saranno comunicati prima del lancio.",
       costKnown: (amount: string) => `Spedizione per ordine: ${amount}. L'importo totale viene mostrato nel carrello e prima del pagamento.`,
@@ -261,6 +273,7 @@ export const it: Dictionary = {
     back: "Torna allo shop",
   },
   checkoutSuccess: {
+    title: "Ordine ricevuto",
     eyebrow: "GRAZIE PER IL TUO MOMENTO WAKPU",
     titlePaid: "Il tuo WAKPU è stato ordinato.",
     titlePending: "Stiamo verificando il tuo pagamento.",
@@ -271,11 +284,14 @@ export const it: Dictionary = {
     backToShop: "Torna allo shop",
   },
   orderStatus: {
+    title: "Il tuo ordine",
     eyebrow: "IL TUO MOMENTO WAKPU",
     orderedOn: (date: string) => `Ordinato il ${date}`,
     supportNote: "In caso di domande, il nostro contatto clienti è felice di aiutarti.",
     paidHeading: "Il tuo ordine è da noi.",
     pendingHeading: "Il tuo pagamento è in fase di verifica.",
+    refundedHeading: "Rimborsato",
+    cancelledHeading: "Annullato",
     steps: ["Ordinato", "Pagato", "In lavorazione", "Spedito", "Consegnato"],
     manualReview: "Stiamo chiarendo i prossimi passi per il tuo ordine.",
     shipmentHeading: "La tua spedizione",

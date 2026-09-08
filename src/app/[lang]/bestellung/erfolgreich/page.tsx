@@ -8,7 +8,10 @@ import type { Order } from '@/types/database';
 import { isLocale } from '@/i18n/locales';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { CheckoutComplete } from './refresh';
-export const metadata:Metadata={title:'Bestellung empfangen',robots:{index:false,follow:false},referrer:'no-referrer'};
+export async function generateMetadata({params}:{params:Promise<{lang:string}>}):Promise<Metadata>{
+  const {lang}=await params;if(!isLocale(lang))return {};
+  return {title:getDictionary(lang).checkoutSuccess.title,robots:{index:false,follow:false},referrer:'no-referrer'};
+}
 export default async function CheckoutSuccess({params,searchParams}:{params:Promise<{lang:string}>;searchParams:Promise<{session_id?:string}>}){
   const {lang}=await params;if(!isLocale(lang))notFound();
   const {session_id}=await searchParams;let order:Order|null=null;

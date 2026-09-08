@@ -183,6 +183,17 @@ export const en: Dictionary = {
     more: (name: string) => `More ${name}`,
     quantity: (name: string) => `Quantity ${name}`,
   },
+  checkoutErrors: {
+    invalidCart: "Please check your cart.",
+    shopClosed: "The shop isn't open for orders yet.",
+    notLive: "Orders aren't enabled yet.",
+    productUnavailable: "A product is no longer available. Please reload the shop and check your cart.",
+    orderAlreadyDone: "This order attempt is already complete. Please reopen your cart.",
+    sessionExpired: "The checkout session has expired. Please start a new order.",
+    startNew: "Please start a new order.",
+    forbidden: "This request isn't allowed.",
+    invalidRequest: "Invalid request.",
+  },
   mobileCartBar: { orderNow: "ORDER NOW" },
   pages: {
     kontakt: {
@@ -236,6 +247,7 @@ export const en: Dictionary = {
       areaHeading: "Delivery area",
       areaText: "For now, orders are only planned with a delivery address in Switzerland.",
       timeHeading: "Delivery time",
+      timeDefault: "Delivery times will be announced before launch.",
       costHeading: "Shipping costs",
       costUnknown: "Shipping costs will be announced before launch.",
       costKnown: (amount: string) => `Shipping per order: ${amount}. The total amount is shown in the cart and before payment.`,
@@ -261,6 +273,7 @@ export const en: Dictionary = {
     back: "Back to shop",
   },
   checkoutSuccess: {
+    title: "Order received",
     eyebrow: "THANKS FOR YOUR WAKPU MOMENT",
     titlePaid: "Your WAKPU is ordered.",
     titlePending: "We're checking your payment.",
@@ -271,11 +284,14 @@ export const en: Dictionary = {
     backToShop: "Back to shop",
   },
   orderStatus: {
+    title: "Your order",
     eyebrow: "YOUR WAKPU MOMENT",
     orderedOn: (date: string) => `Ordered on ${date}`,
     supportNote: "If you have questions, our support is happy to help.",
     paidHeading: "Your order is with us.",
     pendingHeading: "Your payment is being checked.",
+    refundedHeading: "Refunded",
+    cancelledHeading: "Cancelled",
     steps: ["Ordered", "Paid", "Processing", "Shipped", "Delivered"],
     manualReview: "We're currently sorting out the next steps for your order.",
     shipmentHeading: "Your shipment",

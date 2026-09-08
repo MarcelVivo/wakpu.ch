@@ -21,7 +21,7 @@ export const getSiteSettings = cache(async ():Promise<SiteSettings>=>{
   if(error)throw new Error('CLAIMS_UNAVAILABLE');
   return {
     shop_maintenance:s?.shop_maintenance??true,support_email:s?.support_email||process.env.SUPPORT_EMAIL||'',
-    shipping_text:s?.default_shipping_text||'Die Lieferzeit wird vor dem Verkaufsstart bekannt gegeben.',
+    shipping_text:s?.default_shipping_text||'',
     shipping_origin:s?.shipping_origin_text||'',shipping_cost_cents:s?.shipping_cost_cents??null,
     company_name:s?.business_name||'',company_address:s?.business_address||'',company_postcode_city:s?.business_postal_city||'',
     swiss_shop_verified:s?.swiss_shop_verified??false,product_safety_text:s?.product_safety_text||'',product_reuse_text:s?.product_use_text||'',
