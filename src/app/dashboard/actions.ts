@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { requireAdmin } from '@/lib/auth/admin';
+import { requireAdmin, adminEmails } from '@/lib/auth/admin';
 import { getServerSupabase } from '@/lib/supabase/server';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { retryFulfillment,simulateShipped,markManualReview,processFulfillmentJobs } from '@/lib/services/fulfillment';
@@ -13,20 +13,36 @@ import { siteUrl } from '@/lib/env';
 import { isLocale } from '@/i18n/locales';
 export async function login(form:FormData) {
   const parsed=z.object({email:z.email(),password:z.string().min(1).max(512)}).safeParse(Object.fromEntries(form));
-  if(!parsed.success)redirect('/admin/login?status=error');
-  if(parsed.data.email.toLowerCase()!==process.env.ADMIN_EMAIL?.trim().toLowerCase())redirect('/admin/login?status=error');
+  if(!parsed.success)redirect('/dashboard/login?status=error');
+  if(!adminEmails().includes(parsed.data.email.toLowerCase()))redirect('/dashboard/login?status=error');
   let success=false;
   try{const auth=await getServerSupabase();const {data,error}=await auth.auth.signInWithPassword(parsed.data);success=!error&&Boolean(data.user?.email_confirmed_at);}catch{}
-  if(!success)redirect('/admin/login?status=error');redirect('/admin');
+  if(!success)redirect('/dashboard/login?status=error');redirect('/dashboard');
 }
-export async function logout(){const auth=await getServerSupabase();await auth.auth.signOut();redirect('/admin/login');}
+export async function logout(){const auth=await getServerSupabase();await auth.auth.signOut();redirect('/dashboard/login');}
+export async function requestPasswordReset(form:FormData){
+  const parsed=z.object({email:z.email()}).safeParse(Object.fromEntries(form));
+  if(!parsed.success)redirect('/dashboard/forgot-password?status=error');
+  try{const auth=await getServerSupabase();await auth.auth.resetPasswordForEmail(parsed.data.email,{redirectTo:`${siteUrl()}/dashboard/auth/callback?next=/dashboard/reset-password`});}catch{}
+  redirect('/dashboard/forgot-password?status=sent');
+}
+export async function updatePassword(form:FormData){
+  const parsed=z.object({password:z.string().min(8).max(128)}).safeParse(Object.fromEntries(form));
+  if(!parsed.success)redirect('/dashboard/reset-password?status=error');
+  const auth=await getServerSupabase();
+  const {data:{user}}=await auth.auth.getUser();
+  if(!user||!adminEmails().includes(user.email?.toLowerCase()??''))redirect('/dashboard/login?status=error');
+  const {error}=await auth.auth.updateUser({password:parsed.data.password});
+  if(error)redirect('/dashboard/reset-password?status=error');
+  redirect('/dashboard?status=saved');
+}
 async function audit(userId:string,action:string,entityId:string){
   const {error}=await getAdminSupabase().from('admin_logs').insert({admin_user_id:userId,action,entity_type:'admin',entity_id:entityId,details:{}});if(error)throw error;
 }
 export async function orderAction(form:FormData){
   const user=await requireAdmin();
   const parsed=z.object({id:z.uuid(),action:z.enum(['retry','review','ship'])}).safeParse(Object.fromEntries(form));
-  if(!parsed.success)redirect('/admin/orders?status=error');
+  if(!parsed.success)redirect('/dashboard/orders?status=error');
   const {id,action}=parsed.data;let success=false;
   try{
     await audit(user.id,`order.${action}.requested`,id);
@@ -35,18 +51,18 @@ export async function orderAction(form:FormData){
     if(action==='ship')await simulateShipped(id);
     await processEmailJobs();success=true;
   }catch{}
-  revalidatePath('/admin');revalidatePath(`/admin/orders/${id}`);redirect(`/admin/orders/${id}?status=${success?'saved':'error'}`);
+  revalidatePath('/dashboard');revalidatePath(`/dashboard/orders/${id}`);redirect(`/dashboard/orders/${id}?status=${success?'saved':'error'}`);
 }
 export async function saveProduct(form:FormData){
   const user=await requireAdmin();
   const parsed=z.object({id:z.uuid(),variant_id:z.uuid(),name:z.string().min(1).max(120),description:z.string().max(5000),short_description:z.string().max(300),sku:z.string().min(1).max(120),supplier_sku:z.string().max(120),price_chf_cents:z.coerce.number().int().min(1).max(1000000),stock_mode:z.enum(['available','preorder','out_of_stock'])}).safeParse(Object.fromEntries([...form].filter(([key])=>!['active','featured'].includes(key))));
-  if(!parsed.success)redirect('/admin/products?status=error');
+  if(!parsed.success)redirect('/dashboard/products?status=error');
   let success=false;
   try{
     const p=parsed.data;await audit(user.id,'product.update.requested',p.id);
     const {error}=await getAdminSupabase().rpc('admin_update_product',{p_product_id:p.id,p_variant_id:p.variant_id,p_name:p.name,p_description:p.description,p_short_description:p.short_description,p_active:form.get('active')==='on',p_featured:form.get('featured')==='on',p_sku:p.sku,p_supplier_sku:p.supplier_sku||null,p_price_chf_cents:p.price_chf_cents,p_stock_mode:p.stock_mode});if(error)throw error;success=true;
   }catch{}
-  revalidatePath('/');revalidatePath('/admin/products');redirect(`/admin/products?status=${success?'saved':'error'}`);
+  revalidatePath('/');revalidatePath('/dashboard/products');redirect(`/dashboard/products?status=${success?'saved':'error'}`);
 }
 export async function notifyWaitlist(){
   const user=await requireAdmin();
@@ -68,7 +84,7 @@ export async function notifyWaitlist(){
     }
     success=true;
   }catch{}
-  revalidatePath('/admin/waitlist');redirect(`/admin/waitlist?status=${success?'saved':'error'}&sent=${sent}`);
+  revalidatePath('/dashboard/waitlist');redirect(`/dashboard/waitlist?status=${success?'saved':'error'}&sent=${sent}`);
 }
 export async function saveSettings(form:FormData){
   const user=await requireAdmin();
@@ -78,8 +94,8 @@ export async function saveSettings(form:FormData){
   for(const field of booleanFields)payload[field]=form.get(field)==='on';
   for(const field of textFields)payload[field]=String(form.get(field)||'').trim();
   payload.max_supplier_order_cost_cents=Number(form.get('max_supplier_order_cost_cents'));payload.shipping_cost_cents=Number(form.get('shipping_cost_cents'));
-  if(!Number.isSafeInteger(payload.max_supplier_order_cost_cents)||Number(payload.max_supplier_order_cost_cents)<0||Number(payload.max_supplier_order_cost_cents)>2147483647||!Number.isSafeInteger(payload.shipping_cost_cents)||Number(payload.shipping_cost_cents)<0||Number(payload.shipping_cost_cents)>2147483647||String(payload.default_shipping_text).length>1200||textFields.some(f=>String(payload[f]).length>30000)||(payload.support_email&&!z.email().safeParse(payload.support_email).success))redirect('/admin/settings?status=error');
+  if(!Number.isSafeInteger(payload.max_supplier_order_cost_cents)||Number(payload.max_supplier_order_cost_cents)<0||Number(payload.max_supplier_order_cost_cents)>2147483647||!Number.isSafeInteger(payload.shipping_cost_cents)||Number(payload.shipping_cost_cents)<0||Number(payload.shipping_cost_cents)>2147483647||String(payload.default_shipping_text).length>1200||textFields.some(f=>String(payload[f]).length>30000)||(payload.support_email&&!z.email().safeParse(payload.support_email).success))redirect('/dashboard/settings?status=error');
   let success=false;
   try{await audit(user.id,'settings.update.requested','site');const {error}=await getAdminSupabase().from('site_settings').update(payload).eq('id',true);if(error)throw error;success=true;}catch{}
-  revalidatePath('/');revalidatePath('/admin/settings');redirect(`/admin/settings?status=${success?'saved':'error'}`);
+  revalidatePath('/');revalidatePath('/dashboard/settings');redirect(`/dashboard/settings?status=${success?'saved':'error'}`);
 }

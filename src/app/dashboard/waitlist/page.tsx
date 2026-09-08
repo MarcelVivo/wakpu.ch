@@ -1,7 +1,7 @@
 import { requireAdmin } from '@/lib/auth/admin';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { AdminNav, AdminNotice } from '@/components/admin/AdminNav';
-import { notifyWaitlist } from '@/app/admin/actions';
+import { notifyWaitlist } from '@/app/dashboard/actions';
 import { Users, BadgeCheck, Send } from 'lucide-react';
 
 export default async function WaitlistPage({ searchParams }: { searchParams: Promise<{ status?: string; sent?: string }> }) {

@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(request.nextUrl.pathname+request.nextUrl.search,'https://wakpu.ch'),301);
   }
   const {pathname}=request.nextUrl;
-  const isAppRoute=!pathname.startsWith('/admin')&&!pathname.startsWith('/api')&&!pathname.includes('.');
+  const isAppRoute=!pathname.startsWith('/dashboard')&&!pathname.startsWith('/api')&&!pathname.includes('.');
   if(isAppRoute){
     const segment=pathname.split('/')[1]??'';
     if(!isLocale(segment)){
@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
     request.headers.set('x-locale',segment);
   }
   let response=NextResponse.next({request});
-  if(pathname.startsWith('/admin')&&process.env.NEXT_PUBLIC_SUPABASE_URL&&process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY){
+  if(pathname.startsWith('/dashboard')&&process.env.NEXT_PUBLIC_SUPABASE_URL&&process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY){
     const supabase=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,{db:{schema:WAKPU_SCHEMA},cookies:{
       getAll:()=>request.cookies.getAll(),
       setAll:values=>{values.forEach(({name,value})=>request.cookies.set(name,value));response=NextResponse.next({request});values.forEach(({name,value,options})=>response.cookies.set(name,value,options));},

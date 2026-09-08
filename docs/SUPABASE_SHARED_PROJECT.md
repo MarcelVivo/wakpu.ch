@@ -40,7 +40,7 @@ Ein bestehendes bestätigtes eigenes Auth-Konto kann für den WAKPU-Admin verwen
 ## 4. Prüfen und weiter einrichten
 
 - Bestehende Anwendungen prüfen: öffentliche Seiten, Anmeldung und relevante Funktionen.
-- In WAKPU `/admin/login`, den Produktkatalog und die Shop-Einstellungen prüfen.
+- In WAKPU `/dashboard/login`, den Produktkatalog und die Shop-Einstellungen prüfen.
 - In Supabase CPU, Speicher, Datenbankgrösse und Verbindungen unter realer Nutzung prüfen. Die Tabellenübersicht allein belegt keine ausreichende Kapazität.
 - Stripe-Testschlüssel, Webhook, Resend und die übrigen Werte gemäss [README](../README.md) ergänzen und den Bestellablauf im Testmodus durchspielen.
 

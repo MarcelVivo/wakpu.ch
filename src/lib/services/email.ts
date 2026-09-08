@@ -8,9 +8,10 @@ import { isEmailRetryWindowOpen } from "@/lib/fulfillment/safety";
 import { buildOrderStatusUrl } from "./order-access";
 import { claimJobs, deferJob, failJob, finishJob, type WorkerJob } from "./job-queue";
 import { isLocale } from "@/i18n/locales";
+import { adminEmails } from "@/lib/auth/admin";
 
 const emailKinds: EmailKind[] = ["order_confirmation", "shipping_confirmation", "tracking_update", "fulfillment_error", "refund_confirmation"];
-const messageSchema = z.object({ from: z.string().min(3), to: z.email(), subject: z.string().min(1), html: z.string().min(1), text: z.string().min(1) });
+const messageSchema = z.object({ from: z.string().min(3), to: z.union([z.email(), z.array(z.email()).min(1)]), subject: z.string().min(1), html: z.string().min(1), text: z.string().min(1) });
 
 async function emailSnapshot(job: WorkerJob): Promise<z.infer<typeof messageSchema> | null> {
   const db = getAdminSupabase();
@@ -19,13 +20,13 @@ async function emailSnapshot(job: WorkerJob): Promise<z.infer<typeof messageSche
   const { data: settings, error: settingsError } = await db.from("site_settings").select("support_email,default_shipping_text").eq("id", true).single();
   if (settingsError || !settings) throw new Error("E-Mail-Einstellungen nicht verfügbar.");
   const admin = job.kind === "fulfillment_error";
-  const recipient = admin ? process.env.ADMIN_EMAIL : order.email;
-  if (!recipient || !z.email().safeParse(recipient).success) return null;
+  const recipient = admin ? adminEmails() : order.email;
+  if (!recipient || (Array.isArray(recipient) ? !recipient.length : !z.email().safeParse(recipient).success)) return null;
   const locale = admin ? "de" : (isLocale(order.locale) ? order.locale : "de");
   const contents = renderOrderEmail(job.kind as EmailKind, {
     orderNumber: order.order_number, firstName: admin ? "" : order.first_name ?? "",
     totalCents: order.total_cents, shippingCents: order.shipping_cents,
-    statusUrl: admin ? new URL(`/admin/orders/${order.id}`, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").toString() : buildOrderStatusUrl(order),
+    statusUrl: admin ? new URL(`/dashboard/orders/${order.id}`, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").toString() : buildOrderStatusUrl(order),
     supportEmail: settings.support_email ?? "", shippingText: settings.default_shipping_text ?? "", locale,
     items: admin ? [] : (order.order_items ?? []).map((item: { product_name: string; quantity: number; total_price_cents: number }) => ({ name: item.product_name, quantity: item.quantity, totalCents: item.total_price_cents })),
     trackingNumber: typeof job.payload.tracking_number === "string" ? job.payload.tracking_number : null,
@@ -53,7 +54,7 @@ async function processEmailJob(job: WorkerJob): Promise<"sent" | "deferred" | "f
     if (!existing) {
       const { error: insertError } = await db.from("email_events").upsert({
         order_id: job.order_id, dedupe_key: job.dedupe_key, event_type: job.kind,
-        recipient: snapshot.to, payload: snapshot, status: "pending",
+        recipient: Array.isArray(snapshot.to) ? snapshot.to.join(", ") : snapshot.to, payload: snapshot, status: "pending",
       }, { onConflict: "dedupe_key", ignoreDuplicates: true });
       if (insertError) throw new Error("E-Mail konnte nicht im Versandjournal gespeichert werden.");
     }

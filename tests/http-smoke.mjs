@@ -15,6 +15,6 @@ const forged=await fetch(`${base}/api/webhooks/stripe`,{method:'POST',headers:{'
 const cron=await fetch(`${base}/api/cron/fulfillment-sync`);assert.equal(cron.status,401);
 const order=await fetch(`${base}/bestellung/WK-10001`,{redirect:'manual'});assert.equal(order.status,404);
 assert.equal(order.headers.get('referrer-policy'),'no-referrer');assert(order.headers.get('x-robots-tag')?.includes('noindex'));
-const admin=await fetch(`${base}/admin/orders`,{redirect:'follow'});assert(new URL(admin.url).pathname==='/admin/login'||(await admin.text()).includes('/admin/login'));
+const admin=await fetch(`${base}/dashboard/orders`,{redirect:'follow'});assert(new URL(admin.url).pathname==='/dashboard/login'||(await admin.text()).includes('/dashboard/login'));
 const home=await fetch(base);assert.equal(home.status,200);assert.equal(home.headers.get('x-frame-options'),'DENY');assert(home.headers.get('content-security-policy')?.includes("object-src 'none'"));
 console.log('PASS HTTP: 301 domains and preserved query; checkout origin/input/body limits; webhook signatures; cron authentication; private order access; admin gate; security headers.');

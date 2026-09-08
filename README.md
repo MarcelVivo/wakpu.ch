@@ -25,8 +25,8 @@ Alternativ `npm ci` für eine reproduzierbare Installation mit der eingecheckten
 3. Anschliessend `supabase/seed.sql` ausführen. Nur die Seed-Datei enthält die anfänglichen Verkaufspreise. Wiederholtes Seeding setzt vorhandene Produktpreise nicht zurück.
 4. In den Supabase-API-Einstellungen `wakpu` zu **Exposed schemas** hinzufügen und die vorhandenen Einträge beibehalten. Der Anwendungscode verwendet fest `db.schema = 'wakpu'`. Die nötigen eingeschränkten Datenbankrechte setzt bereits die Migration; keine zusätzlichen pauschalen Grants ausführen.
 5. Projekt-URL, Anon-Key und Service-Role-Key in `.env.local` bzw. Vercel setzen. Der Service-Role-Key bleibt ausschliesslich auf dem Server. Die Migration entzieht anonymen und angemeldeten Browsern Zugriff auf Bestellungen, Zahlungen, Jobs, interne Einstellungen, Logs und Lieferanten-SKUs; RLS ist für alle WAKPU-Tabellen aktiv.
-6. Unter Authentication ein bereits bestätigtes eigenes Konto verwenden oder einen Benutzer mit Passwort anlegen und bestätigen. Exakt diese Adresse als `ADMIN_EMAIL` setzen. WAKPU bietet keine öffentliche Registrierung. `/admin/login` prüft Supabase Auth serverseitig und erlaubt nur dieses bestätigte Konto. Gemeinsame Auth-Einstellungen und bestehende Benutzer nicht für WAKPU umstellen.
-7. In `/admin/settings` Kontakt, Unternehmensangaben, Versandhinweise und Kosten eintragen. Alternativ den Singleton-Datensatz `wakpu.site_settings` (`id=true`) im Supabase Table Editor bearbeiten.
+6. Unter Authentication ein bereits bestätigtes eigenes Konto verwenden oder einen Benutzer mit Passwort anlegen und bestätigen. Exakt diese Adresse als `ADMIN_EMAIL` setzen. WAKPU bietet keine öffentliche Registrierung. `/dashboard/login` prüft Supabase Auth serverseitig und erlaubt nur dieses bestätigte Konto. Gemeinsame Auth-Einstellungen und bestehende Benutzer nicht für WAKPU umstellen.
+7. In `/dashboard/settings` Kontakt, Unternehmensangaben, Versandhinweise und Kosten eintragen. Alternativ den Singleton-Datensatz `wakpu.site_settings` (`id=true`) im Supabase Table Editor bearbeiten.
 8. Für den **Testbetrieb** nach Einrichtung von Stripe-Testschlüsseln und Resend Wartungsmodus deaktivieren und Fulfillment aktivieren. `FULFILLMENT_PROVIDER=mock` beibehalten. Mock-Lieferantenkosten sind 0; `max_supplier_order_cost_cents=0` ist für Mock ausreichend. Der Mock gibt deterministische `MOCK-…`-Bestellreferenzen zurück und kauft nichts ein.
 
 Tabellen: `products`, `product_variants`, `orders`, `order_items`, `payments`, `fulfillment_orders`, `shipments`, `webhook_events`, `email_events`, `jobs`, `site_settings`, `verified_claims`, `admin_logs`. `jobs` ist die dauerhafte Outbox mit atomarer Reservierung, Wiederholungen, Backoff und Ablauf von Reservierungen. `site_public_settings` gibt nur öffentliche Angaben frei.
@@ -107,7 +107,7 @@ Vorlagen: Bestellbestätigung, Versandbestätigung, Tracking-Update, Fulfillment
 4. In Supabase prüfen: genau eine Bestellung, korrekte `order_items`, `payment_status=paid`, Zahlungsreferenz und Webhook-ID.
 5. Genau eine `fulfillment_orders`-Zeile mit `MOCK-…`-Referenz; genau ein abgeschlossener Fulfillment-Job.
 6. Bestellbestätigung in Resend und `email_events` prüfen.
-7. `/admin/orders` öffnen, Bestellung ansehen, **Versand simulieren** anklicken.
+7. `/dashboard/orders` öffnen, Bestellung ansehen, **Versand simulieren** anklicken.
 8. `shipments`, Test-Trackingnummer, `order_status=shipped` und Versandmail prüfen. Mock-Nachrichten kennzeichnen die Simulation und verlinken keinen erfundenen Carrier.
 9. Persönlichen Bestelllink aus der E-Mail öffnen; Status und Sendungsnummer sind sichtbar. Ohne/falschem Token muss 404 erscheinen.
 10. Stripe-Event und Versandaktion wiederholen: keine zweite Supplier-Bestellung und keine zweite identische Versandmail.

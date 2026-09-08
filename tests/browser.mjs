@@ -58,8 +58,8 @@ try {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${route} no mobile overflow`);
     assert(await page.locator('main h1').count() === 1, `${route} has heading`);
   }
-  await page.goto(`${baseURL}/admin/orders`, { waitUntil: 'networkidle' });
-  assert(/\/admin\/login/.test(page.url()) || /Admin-Zugang|Anmelden|Konfiguration/.test(await page.locator('body').innerText()), 'Admin is protected');
+  await page.goto(`${baseURL}/dashboard/orders`, { waitUntil: 'networkidle' });
+  assert(/\/dashboard\/login/.test(page.url()) || /Admin-Zugang|Anmelden|Konfiguration/.test(await page.locator('body').innerText()), 'Admin is protected');
   await context.close();
   assert.deepEqual(errors, [], 'No uncaught browser errors');
   console.log('PASS legal routes, admin protection and hero video loading');

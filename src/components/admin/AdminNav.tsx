@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, ShoppingBag, Package, Mail, Settings, LogOut } from "lucide-react";
-import { logout } from "@/app/admin/actions";
+import { logout } from "@/app/dashboard/actions";
 
 const links = [
-  { href: "/admin", label: "Übersicht", icon: LayoutDashboard },
-  { href: "/admin/orders", label: "Bestellungen", icon: ShoppingBag },
-  { href: "/admin/products", label: "Produkte", icon: Package },
-  { href: "/admin/waitlist", label: "Warteliste", icon: Mail },
-  { href: "/admin/settings", label: "Einstellungen", icon: Settings },
+  { href: "/dashboard", label: "Übersicht", icon: LayoutDashboard },
+  { href: "/dashboard/orders", label: "Bestellungen", icon: ShoppingBag },
+  { href: "/dashboard/products", label: "Produkte", icon: Package },
+  { href: "/dashboard/waitlist", label: "Warteliste", icon: Mail },
+  { href: "/dashboard/settings", label: "Einstellungen", icon: Settings },
 ];
 
 export function AdminNav() {
@@ -22,7 +22,7 @@ export function AdminNav() {
     </div>
     <nav className="admin-nav" aria-label="Administration">
       {links.map(({ href, label, icon: Icon }) => {
-        const active = href === "/admin" ? pathname === href : pathname.startsWith(href);
+        const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
         return <Link key={href} href={href} aria-current={active ? "page" : undefined}><Icon size={15} aria-hidden="true" />{label}</Link>;
       })}
     </nav>
