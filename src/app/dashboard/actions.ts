@@ -23,7 +23,7 @@ export async function logout(){const auth=await getServerSupabase();await auth.a
 export async function requestPasswordReset(form:FormData){
   const parsed=z.object({email:z.email()}).safeParse(Object.fromEntries(form));
   if(!parsed.success)redirect('/dashboard/forgot-password?status=error');
-  try{const auth=await getServerSupabase();await auth.auth.resetPasswordForEmail(parsed.data.email,{redirectTo:`${siteUrl()}/dashboard/auth/callback?next=/dashboard/reset-password`});}catch{}
+  try{const auth=await getServerSupabase();await auth.auth.resetPasswordForEmail(parsed.data.email,{redirectTo:`${siteUrl()}/dashboard/auth/callback`});}catch{}
   redirect('/dashboard/forgot-password?status=sent');
 }
 export async function updatePassword(form:FormData){
