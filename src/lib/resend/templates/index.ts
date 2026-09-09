@@ -78,6 +78,15 @@ export function renderWaitlistConfirmEmail(confirmUrl: string, locale: Locale): 
   return { subject: dict.confirmSubject, html, text };
 }
 
+/** Free-text admin-authored marketing mailing; subject/body are escaped, no merge fields. */
+export function renderMarketingEmail(subject: string, bodyText: string): { subject: string; html: string; text: string } {
+  const e = escapeHtml;
+  const paragraphs = bodyText.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const text = [...paragraphs, "WAKPU"].join("\n\n");
+  const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f7f7f5;color:#171719;font-family:Arial,Helvetica,sans-serif"><main style="max-width:560px;margin:32px auto;background:#fff;padding:32px;border-radius:16px"><div style="font-size:28px;font-weight:900;letter-spacing:-1px">WAKPU</div><h1 style="font-size:24px;line-height:1.2;margin-top:32px">${e(subject)}</h1>${paragraphs.map((p) => `<p style="line-height:1.6">${e(p).replace(/\n/g, "<br>")}</p>`).join("")}<p style="font-size:12px;color:#71717a;margin-top:32px">WAKPU</p></main></body></html>`;
+  return { subject, html, text };
+}
+
 /** Sent once per confirmed signup when the shop actually opens for orders. */
 export function renderWaitlistLaunchEmail(shopUrl: string, locale: Locale): { subject: string; html: string; text: string } {
   const dict = getDictionary(locale).emails.waitlist;

@@ -8,7 +8,7 @@ import { getAdminSupabase } from '@/lib/supabase/admin';
 import { retryFulfillment,simulateShipped,markManualReview,processFulfillmentJobs } from '@/lib/services/fulfillment';
 import { processEmailJobs } from '@/lib/services/email';
 import { getResend,isEmailConfigured } from '@/lib/resend/client';
-import { renderWaitlistLaunchEmail } from '@/lib/resend/templates';
+import { renderWaitlistLaunchEmail, renderMarketingEmail } from '@/lib/resend/templates';
 import { siteUrl } from '@/lib/env';
 import { isLocale } from '@/i18n/locales';
 export async function login(form:FormData) {
@@ -85,6 +85,32 @@ export async function notifyWaitlist(){
     success=true;
   }catch{}
   revalidatePath('/dashboard/waitlist');redirect(`/dashboard/waitlist?status=${success?'saved':'error'}&sent=${sent}`);
+}
+export async function sendMarketingMailing(form:FormData){
+  const user=await requireAdmin();
+  const parsed=z.object({mailing_id:z.uuid(),subject:z.string().min(1).max(200),body:z.string().min(1).max(20000),locale_filter:z.enum(['all','de','en','fr','it'])}).safeParse(Object.fromEntries(form));
+  if(!parsed.success)redirect('/dashboard/waitlist?status=error');
+  const {mailing_id,subject,body,locale_filter}=parsed.data;
+  let sent=0;let success=false;
+  try{
+    await audit(user.id,'waitlist.marketing.requested',mailing_id);
+    const db=getAdminSupabase();
+    let query=db.from('waitlist_signups').select('id,email').not('confirmed_at','is',null).limit(500);
+    if(locale_filter!=='all')query=query.eq('locale',locale_filter);
+    const {data:rows,error}=await query;
+    if(error)throw error;
+    if(isEmailConfigured()){
+      const message=renderMarketingEmail(subject,body);
+      for(const row of rows??[]){
+        try{
+          const response=await getResend().emails.send({from:process.env.RESEND_FROM_EMAIL!,to:row.email,...message},{idempotencyKey:`wakpu-marketing/${mailing_id}/${row.id}`});
+          if(!response.error)sent++;
+        }catch{}
+      }
+    }
+    success=true;
+  }catch{}
+  redirect(`/dashboard/waitlist?status=${success?'saved':'error'}&sent=${sent}&mailing=1`);
 }
 export async function saveSettings(form:FormData){
   const user=await requireAdmin();
